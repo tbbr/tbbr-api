@@ -2,7 +2,7 @@ package user
 
 import (
 	"net/http"
-	"time"
+	"payup/database"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,26 +12,40 @@ import (
 // come with some query parameters like limit and offset
 // @returns an array of users
 func Index(c *gin.Context) {
-	user := User{
-		Name:      "Maaz Ali",
-		Username:  "maaz_ali",
-		CreatedAt: time.Now(),
-		Email:     "maazali40@gmail.com",
-	}
+	var user User
+	database.DBCon.First(&user)
 
 	c.JSON(http.StatusOK, user)
 }
 
 // Show is used to show one specific user
-// *returns a user struct
+// @returns a user struct
 func Show(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"userShow": c.Param("id")})
+	var user User
+	database.DBCon.First(&user, c.Param("id"))
+	c.JSON(http.StatusOK, user)
 }
 
 // Create is used to create one specific user, it'll come with some form data
 // @returns the newly created user struct
 func Create(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"userCreate": "someContent"})
+	// db, err := gorm.Open("postgres", "user=maazali dbname=payup_backup sslmode=disable")
+
+	// if err != nil {
+	// 	fmt.Printf("Error occurred %s\n", err)
+	// } else {
+
+	// user := User{
+	// 	Name: c.,
+	// 	Username:  "maazali",
+	// 	CreatedAt: time.Now(),
+	// 	Email:     "maazali40@gmail.com",
+	// }
+
+	// db.Create(&user)
+	nick := c.PostForm("test")
+	c.JSON(http.StatusOK, nick)
+	// }
 }
 
 // Update is used to update a specific group, it'll also come with some form data

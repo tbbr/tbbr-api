@@ -2,17 +2,20 @@ package main
 
 import (
 	"fmt"
+	"payup/database"
 	"payup/group"
 	"payup/user"
 	"runtime"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	_ "github.com/lib/pq"
 )
 
 func main() {
 
 	configRuntime()
+	bootstrap()
 	startGin()
 }
 
@@ -22,15 +25,17 @@ func configRuntime() {
 	fmt.Printf("Running with %d CPUs\n", nuCPU)
 }
 
-func bootsrap() {
+func bootstrap() {
 
-	db, err := gorm.Open("postgres", "user=test dbname=payup sslmode=disable")
+	var err error
+	database.DBCon, err = gorm.Open("postgres", "user=maazali dbname=payup_backup sslmode=disable")
 
 	if err != nil {
-		fmt.Printf("Error occurred", err)
+		fmt.Printf("Error occurred %s\n", err)
+	} else {
+		fmt.Printf("Connection setup with database\n")
+		fmt.Printf("Pinging: %s \n", database.DBCon.DB().Ping())
 	}
-
-	db.DB().Ping()
 }
 
 func startGin() {

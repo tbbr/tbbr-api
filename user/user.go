@@ -13,4 +13,5 @@ type User struct {
 	// Groups    []group.Group `gorm:"many2many:group_users;"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt *time.Time
 }
