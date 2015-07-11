@@ -12,10 +12,10 @@ import (
 // come with some query parameters like limit and offset
 // @returns an array of users
 func Index(c *gin.Context) {
-	var user User
-	database.DBCon.First(&user)
+	var users []User
+	database.DBCon.Limit(c.Param("limit")).Find(&users)
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{"users": users})
 }
 
 // Show is used to show one specific user
@@ -23,32 +23,26 @@ func Index(c *gin.Context) {
 func Show(c *gin.Context) {
 	var user User
 	database.DBCon.First(&user, c.Param("id"))
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
 // Create is used to create one specific user, it'll come with some form data
 // @returns the newly created user struct
 func Create(c *gin.Context) {
-	// db, err := gorm.Open("postgres", "user=maazali dbname=payup_backup sslmode=disable")
 
-	// if err != nil {
-	// 	fmt.Printf("Error occurred %s\n", err)
-	// } else {
+	user := User{
+		Name:     c.PostForm("name"),
+		Username: c.PostForm("username"),
+		Email:    c.PostForm("email"),
+	}
 
-	// user := User{
-	// 	Name: c.,
-	// 	Username:  "maazali",
-	// 	CreatedAt: time.Now(),
-	// 	Email:     "maazali40@gmail.com",
-	// }
+	database.DBCon.Create(&user)
 
-	// db.Create(&user)
-	nick := c.PostForm("test")
-	c.JSON(http.StatusOK, nick)
-	// }
+	c.JSON(http.StatusOK, gin.H{"user": user})
+
 }
 
-// Update is used to update a specific group, it'll also come with some form data
+// Update is used to update a specific user, it'll also come with some form data
 // @returns a user struct
 func Update(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"userUpdate": "someContent"})
