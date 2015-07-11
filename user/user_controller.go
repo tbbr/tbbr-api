@@ -50,5 +50,9 @@ func Update(c *gin.Context) {
 
 // Delete is used to delete one specific user with a `id`
 func Delete(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"userDelete": "someContent"})
+	var user User
+	database.DBCon.First(&user, c.Param("id"))
+	database.DBCon.Delete(&user)
+
+	c.JSON(http.StatusOK, gin.H{"success": true})
 }
