@@ -1,13 +1,9 @@
-package group
-
-import (
-	"payup/user"
-)
+package models
 
 // Group model that users wil use
 type Group struct {
 	ID          int
 	Name        string
 	Description string
-	Users       []user.User `gorm:"many2many:group_users;"`
+	Users       []User `gorm:"many2many:group_users;"`
 }

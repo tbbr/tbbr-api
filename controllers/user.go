@@ -1,36 +1,37 @@
-package user
+package controllers
 
 import (
 	"net/http"
 	"payup/database"
+	"payup/models"
 
 	"github.com/gin-gonic/gin"
 )
 
-// Index is used when the user's index is routed to
+// UserIndex is used when the user's index is routed to
 // this handler will run. Generally, it will
 // come with some query parameters like limit and offset
 // @returns an array of users
-func Index(c *gin.Context) {
-	var users []User
+func UserIndex(c *gin.Context) {
+	var users []models.User
 	database.DBCon.Limit(c.Param("limit")).Find(&users)
 
 	c.JSON(http.StatusOK, gin.H{"users": users})
 }
 
-// Show is used to show one specific user
+// UserShow is used to show one specific user
 // @returns a user struct
-func Show(c *gin.Context) {
-	var user User
+func UserShow(c *gin.Context) {
+	var user models.User
 	database.DBCon.First(&user, c.Param("id"))
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
-// Create is used to create one specific user, it'll come with some form data
+// UserCreate is used to create one specific user, it'll come with some form data
 // @returns the newly created user struct
-func Create(c *gin.Context) {
+func UserCreate(c *gin.Context) {
 
-	user := User{
+	user := models.User{
 		Name:     c.PostForm("name"),
 		Username: c.PostForm("username"),
 		Email:    c.PostForm("email"),
@@ -42,15 +43,15 @@ func Create(c *gin.Context) {
 
 }
 
-// Update is used to update a specific user, it'll also come with some form data
+// UserUpdate is used to update a specific user, it'll also come with some form data
 // @returns a user struct
-func Update(c *gin.Context) {
+func UserUpdate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"userUpdate": "someContent"})
 }
 
-// Delete is used to delete one specific user with a `id`
-func Delete(c *gin.Context) {
-	var user User
+// UserDelete is used to delete one specific user with a `id`
+func UserDelete(c *gin.Context) {
+	var user models.User
 	database.DBCon.First(&user, c.Param("id"))
 	database.DBCon.Delete(&user)
 
