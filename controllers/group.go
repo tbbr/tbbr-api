@@ -27,17 +27,25 @@ func GroupShow(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"group": group})
 }
 
+// // LoginJSON stuff
+// type LoginJSON struct {
+// 	Username string `json:"username"`
+// 	Password string `json:"password"`
+// }
+
 // GroupCreate is used to create one specific group, it'll come with some form data
 // @returns a group struct
 func GroupCreate(c *gin.Context) {
-	group := models.Group{
-		Name:        c.PostForm("name"),
-		Description: c.PostForm("description"),
-	}
+	// group := models.Group{
+	// 	Name:        c.PostForm("name"),
+	// 	Description: c.PostForm("description"),
+	// }
+	var group models.Group
+	c.Bind(&group)
+	c.JSON(200, group)
+	// database.DBCon.Create(&group)
 
-	database.DBCon.Create(&group)
-
-	c.JSON(http.StatusOK, gin.H{"group": group})
+	// c.JSON(http.StatusOK, gin.H{"group": c.PostForm("group")})
 }
 
 // GroupUpdate is used to update a specific group, it'll also come with some form data'
