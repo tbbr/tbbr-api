@@ -6,12 +6,12 @@ import (
 
 // User model
 type User struct {
-	ID        int
-	Name      string
-	Username  string
-	Email     string
-	Groups    []Group `gorm:"many2many:group_users;"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
+	ID        int        `json:"id"`
+	Name      string     `json:"name"`
+	Username  string     `json:"username"`
+	Email     string     `json:"email"`
+	Groups    []Group    `gorm:"many2many:group_users;" json:"groups"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+	DeletedAt *time.Time `json:"deletedAt"`
 }
