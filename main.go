@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
+	"payup/controllers"
 	"payup/database"
-	"payup/group"
-	"payup/user"
 	"runtime"
 
 	"github.com/gin-gonic/gin"
@@ -51,22 +50,29 @@ func startGin() {
 	{
 		groups := v1.Group("/groups")
 		{
-			groups.GET("/", group.Index)
-			groups.POST("/", group.Create)
+			groups.GET("/", controllers.GroupIndex)
+			groups.POST("/", controllers.GroupCreate)
 
-			groups.GET("/:id", group.Show)
-			groups.PUT("/:id", group.Update)
-			groups.DELETE("/:id", group.Delete)
+			groups.GET("/:id", controllers.GroupShow)
+			groups.PUT("/:id", controllers.GroupUpdate)
+			groups.DELETE("/:id", controllers.GroupDelete)
 		}
 
 		users := v1.Group("/users")
 		{
-			users.GET("/", user.Index)
+			users.GET("/", controllers.UserIndex)
 
-			users.GET("/:id", user.Show)
-			users.POST("/", user.Create)
-			users.PUT("/:id", user.Update)
-			users.DELETE("/:id", user.Delete)
+			users.GET("/:id", controllers.UserShow)
+			users.POST("/", controllers.UserCreate)
+			users.PUT("/:id", controllers.UserUpdate)
+			users.DELETE("/:id", controllers.UserDelete)
+		}
+
+		transactions := v1.Group("/transactions")
+		{
+			transactions.POST("/", controllers.TransactionCreate)
+			transactions.GET("/", controllers.TransactionIndex)
+
 		}
 	}
 
