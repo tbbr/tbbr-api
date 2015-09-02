@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	"payup/models"
+	"payup/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,14 +18,14 @@ func TransactionIndex(c *gin.Context) {
 // between two users in a group
 // @returns the newly created transaction
 func TransactionCreate(c *gin.Context) {
-	// var t models.Transaction
-	// t.Amount := 150
-	// t.Comment := "I bought Brandon Coffee"
-	// t.LenderID := 1
-	// t.BurrowerID := 3
-	// t.GroupID := 2
-	//
-	// database.DBCon.Create(&t)
-	//
-	// c.JSON(http.StatusOK, gin.H{"transaction": t})
+	var t models.Transaction
+	t.Amount := 150
+	t.Comment := "I bought Brandon Coffee"
+	t.LenderID := 1
+	t.BurrowerID := 3
+	t.GroupID := 2
+
+	database.DBCon.Create(&t)
+
+	c.JSON(http.StatusOK, gin.H{"transaction": t})
 }
