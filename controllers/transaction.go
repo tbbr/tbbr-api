@@ -3,8 +3,9 @@ package controllers
 import (
 	"net/http"
 
-	"payup/models"
 	"payup/database"
+	"payup/models"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,11 +20,12 @@ func TransactionIndex(c *gin.Context) {
 // @returns the newly created transaction
 func TransactionCreate(c *gin.Context) {
 	var t models.Transaction
-	t.Amount := 150
-	t.Comment := "I bought Brandon Coffee"
-	t.LenderID := 1
-	t.BurrowerID := 3
-	t.GroupID := 2
+
+	t.Amount = 150
+	t.Comment = "I bought Brandon Coffee"
+	t.LenderID = 1
+	t.BurrowerID = 3
+	t.GroupID = 2
 
 	database.DBCon.Create(&t)
 
