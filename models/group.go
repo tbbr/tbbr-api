@@ -9,14 +9,15 @@ import (
 
 // Group model that users wil use
 type Group struct {
-	ID          int        `json:"id"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Users       []User     `gorm:"many2many:group_users;" json:"users"`
-	HashID      string     `json:"hashId"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
-	DeletedAt   *time.Time `json:"deletedAt"`
+	ID           uint          `json:"id"`
+	Name         string        `json:"name"`
+	Description  string        `json:"description"`
+	Users        []User        `gorm:"many2many:group_users;" json:"users"`
+	Transactions []Transaction `json:"transactions"`
+	HashID       string        `json:"hashId"`
+	CreatedAt    time.Time     `json:"createdAt"`
+	UpdatedAt    time.Time     `json:"updatedAt"`
+	DeletedAt    *time.Time    `json:"deletedAt"`
 }
 
 // AfterCreate generates a HashID for a Group based on it's numeric ID field
@@ -27,7 +28,7 @@ func (g *Group) AfterCreate(db *gorm.DB) (err error) {
 	h := hashids.NewWithData(hd)
 
 	a := []int{0}
-	a[0] = g.ID
+	a[0] = int(g.ID)
 
 	// Encode
 	e, _ := h.Encode(a)
@@ -35,6 +36,5 @@ func (g *Group) AfterCreate(db *gorm.DB) (err error) {
 
 	// Save
 	db.Save(&g)
-
 	return
 }

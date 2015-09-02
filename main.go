@@ -67,6 +67,13 @@ func startGin() {
 			users.PUT("/:id", controllers.UserUpdate)
 			users.DELETE("/:id", controllers.UserDelete)
 		}
+
+		transactions := v1.Group("/transactions")
+		{
+			transactions.POST("/", controllers.TransactionCreate)
+			transactions.GET("/", controllers.TransactionIndex)
+
+		}
 	}
 
 	// Listen and server on 0.0.0.0:8080

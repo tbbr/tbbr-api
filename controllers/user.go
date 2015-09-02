@@ -24,6 +24,7 @@ func UserIndex(c *gin.Context) {
 func UserShow(c *gin.Context) {
 	var user models.User
 	database.DBCon.First(&user, c.Param("id"))
+
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 

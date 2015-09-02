@@ -23,8 +23,14 @@ func GroupIndex(c *gin.Context) {
 // @returns a group struct
 func GroupShow(c *gin.Context) {
 	var group models.Group
+	var users []models.User
 
 	database.DBCon.First(&group, c.Param("id"))
+	database.DBCon.Model(&group).Related(&users, "Users")
+	group.Users = users
+	// database.DBCon.Find(&users)
+
+	// database.DBCon.Model(&group).Association("Users").Append(users)
 
 	// hd := hashids.NewData()
 	// hd.Salt = "9398dfajsie288sawiehg"
