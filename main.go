@@ -44,9 +44,10 @@ func startGin() {
 
 	// Handle assets and index.html file
 	// router.Static("/", "index.html")
-	router.Static("/assets", "./assets")
 
-	v1 := router.Group("/api/v1")
+	router.Use(Cors())
+
+	v1 := router.Group("/v1")
 	{
 		groups := v1.Group("/groups")
 		{
@@ -78,4 +79,14 @@ func startGin() {
 
 	// Listen and server on 0.0.0.0:8080
 	router.Run(":8080")
+}
+
+// Cors Enables cors for the api
+func Cors() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Add("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+
+		c.Next()
+	}
 }
