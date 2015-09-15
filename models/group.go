@@ -11,12 +11,12 @@ import (
 
 // Group model that users wil use
 type Group struct {
-	ID           uint          `jsonapi:"-"`
-	Name         string        `json:"name"`
-	Description  string        `json:"description"`
+	ID           uint `jsonapi:"-"`
+	Name         string
+	Description  string
 	Users        []User        `gorm:"many2many:group_users;" jsonapi:"-"`
 	Transactions []Transaction `jsonapi:"-"`
-	HashID       string
+	HashID       string        `jsonapi:"name=hashId"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	DeletedAt    *time.Time `jsonapi:"-"`

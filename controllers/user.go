@@ -6,6 +6,7 @@ import (
 	"payup/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/manyminds/api2go/jsonapi"
 )
 
 // UserIndex is used when the user's index is routed to
@@ -16,16 +17,31 @@ func UserIndex(c *gin.Context) {
 	var users []models.User
 	database.DBCon.Limit(c.Param("limit")).Find(&users)
 
-	c.JSON(http.StatusOK, gin.H{"users": users})
+	data, err := jsonapi.MarshalToJSON(users)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
+	}
+
+	c.Data(http.StatusOK, "application/vnd.api+json", data)
 }
 
 // UserShow is used to show one specific user
 // @returns a user struct
 func UserShow(c *gin.Context) {
 	var user models.User
+	var groups []models.Group
 	database.DBCon.First(&user, c.Param("id"))
+	database.DBCon.Model(&user).Related(&groups, "Groups")
+	user.Groups = groups
 
-	c.JSON(http.StatusOK, gin.H{"user": user})
+	data, err := jsonapi.MarshalToJSON(jsonapi.MarshalIncludedRelations(user))
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
+	}
+
+	c.Data(http.StatusOK, "application/vnd.api+json", data)
 }
 
 // UserCreate is used to create one specific user, it'll come with some form data
