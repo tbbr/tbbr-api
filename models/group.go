@@ -1,23 +1,75 @@
 package models
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/manyminds/api2go/jsonapi"
 	"github.com/speps/go-hashids"
 )
 
 // Group model that users wil use
 type Group struct {
-	ID           uint          `json:"id"`
+	ID           uint          `jsonapi:"-"`
 	Name         string        `json:"name"`
 	Description  string        `json:"description"`
-	Users        []User        `gorm:"many2many:group_users;" json:"users"`
-	Transactions []Transaction `json:"transactions"`
-	HashID       string        `json:"hashId"`
-	CreatedAt    time.Time     `json:"createdAt"`
-	UpdatedAt    time.Time     `json:"updatedAt"`
-	DeletedAt    *time.Time    `json:"deletedAt"`
+	Users        []User        `gorm:"many2many:group_users;" jsonapi:"-"`
+	Transactions []Transaction `jsonapi:"-"`
+	HashID       string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    *time.Time `jsonapi:"-"`
+}
+
+// GetID returns a stringified version of an ID
+func (g Group) GetID() string {
+	return strconv.FormatUint(uint64(g.ID), 10)
+}
+
+// GetReferences returns all related structs to groups
+func (g Group) GetReferences() []jsonapi.Reference {
+	return []jsonapi.Reference{
+		{
+			Type: "users",
+			Name: "users",
+		},
+		{
+			Type: "transactions",
+			Name: "transactions",
+		},
+	}
+}
+
+// GetReferencedIDs satisfies the jsonapi.MarshalLinkedRelations interface
+func (g Group) GetReferencedIDs() []jsonapi.ReferenceID {
+	result := []jsonapi.ReferenceID{}
+	for _, user := range g.Users {
+		result = append(result, jsonapi.ReferenceID{
+			ID:   user.GetID(),
+			Type: "users",
+			Name: "users",
+		})
+	}
+
+	for _, transaction := range g.Transactions {
+		result = append(result, jsonapi.ReferenceID{
+			ID:   transaction.GetID(),
+			Type: "transactions",
+			Name: "transactions",
+		})
+	}
+	return result
+}
+
+// GetReferencedStructs to satisfy the jsonapi.MarhsalIncludedRelations interface
+func (g Group) GetReferencedStructs() []jsonapi.MarshalIdentifier {
+	result := []jsonapi.MarshalIdentifier{}
+	for key := range g.Users {
+		result = append(result, g.Users[key])
+	}
+
+	return result
 }
 
 // AfterCreate generates a HashID for a Group based on it's numeric ID field

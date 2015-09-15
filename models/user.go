@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -14,4 +15,8 @@ type User struct {
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`
 	DeletedAt *time.Time `json:"deletedAt"`
+}
+
+func (u User) GetID() string {
+	return strconv.FormatUint(uint64(u.ID), 10)
 }

@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"net/http"
+
 	"payup/database"
 	"payup/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/manyminds/api2go/jsonapi"
 )
 
 // GroupIndex When the group's index is routed to
@@ -16,7 +18,13 @@ func GroupIndex(c *gin.Context) {
 	var groups []models.Group
 	database.DBCon.Limit(c.Param("limit")).Find(&groups)
 
-	c.JSON(http.StatusOK, gin.H{"groups": groups})
+	data, err := jsonapi.MarshalToJSON(groups)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
+	}
+
+	c.Data(http.StatusOK, "application/vnd.api+json", data)
 }
 
 // GroupShow is used to show one specific group, returns a group struct
@@ -28,20 +36,13 @@ func GroupShow(c *gin.Context) {
 	database.DBCon.First(&group, c.Param("id"))
 	database.DBCon.Model(&group).Related(&users, "Users")
 	group.Users = users
-	// database.DBCon.Find(&users)
+	data, err := jsonapi.MarshalToJSON(jsonapi.MarshalIncludedRelations(group))
 
-	// database.DBCon.Model(&group).Association("Users").Append(users)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
+	}
 
-	// hd := hashids.NewData()
-	// hd.Salt = "9398dfajsie288sawiehg"
-	// hd.MinLength = 6
-	// h := hashids.NewWithData(hd)
-	//
-	// // Decode
-	// e := h.Decode(group.HashID)
-	// fmt.Println(e)
-
-	c.JSON(http.StatusOK, gin.H{"group": group})
+	c.Data(http.StatusOK, "application/vnd.api+json", data)
 }
 
 // GroupCreate is used to create one specific group, it'll come with some form data

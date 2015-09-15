@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 // Transaction model
 type Transaction struct {
@@ -13,4 +16,9 @@ type Transaction struct {
 	CreatedAt  time.Time  `json:"createdAt"`
 	UpdatedAt  time.Time  `json:"updatedAt"`
 	DeletedAt  *time.Time `json:"deletedAt"`
+}
+
+// GetID returns a stringified version of an ID
+func (t Transaction) GetID() string {
+	return strconv.FormatUint(uint64(t.ID), 10)
 }
