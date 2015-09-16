@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"time"
 
+	"payup/config"
+
 	"github.com/jinzhu/gorm"
 	"github.com/manyminds/api2go/jsonapi"
 	"github.com/speps/go-hashids"
@@ -75,8 +77,8 @@ func (g Group) GetReferencedStructs() []jsonapi.MarshalIdentifier {
 // AfterCreate generates a HashID for a Group based on it's numeric ID field
 func (g *Group) AfterCreate(db *gorm.DB) (err error) {
 	hd := hashids.NewData()
-	hd.Salt = "9398dfajsie288sawiehg"
-	hd.MinLength = 6
+	hd.Salt = config.HashID.Salt
+	hd.MinLength = config.HashID.MinLength
 	h := hashids.NewWithData(hd)
 
 	a := []int{0}
