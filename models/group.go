@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -17,6 +18,7 @@ type Group struct {
 	Name         string
 	Description  string
 	Users        []User        `gorm:"many2many:group_users;" jsonapi:"-"`
+	UserIDs      []uint        `jsonapi:"-"`
 	Transactions []Transaction `jsonapi:"-"`
 	HashID       string        `jsonapi:"name=hashId"`
 	CreatedAt    time.Time
@@ -27,6 +29,31 @@ type Group struct {
 // GetID returns a stringified version of an ID
 func (g Group) GetID() string {
 	return strconv.FormatUint(uint64(g.ID), 10)
+}
+
+// SetID to satisfy jsonapi.UnmarshalIdentifier interface
+func (g *Group) SetID(id string) error {
+	groupID, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return err
+	}
+	g.ID = uint(groupID)
+	return nil
+}
+
+// SetToManyReferenceIDs sets the sweets reference IDs and satisfies the jsonapi.UnmarshalToManyRelations interface
+func (g *Group) SetToManyReferenceIDs(name string, IDs []string) error {
+	if name == "users" {
+		for _, i := range IDs {
+			j, err := strconv.ParseUint(i, 10, 64)
+			if err != nil {
+				return err
+			}
+			g.UserIDs = append(g.UserIDs, uint(j))
+		}
+	}
+
+	return errors.New("There is no to-many relationship with the name " + name)
 }
 
 // GetReferences returns all related structs to groups

@@ -41,6 +41,7 @@ func startGin() {
 	// Creates a gin router with default middlewares:
 	// logger and recovery (crash-free) middlewares
 	router := gin.Default()
+	router.RedirectTrailingSlash = true
 
 	// Handle assets and index.html file
 	// router.Static("/", "index.html")
@@ -51,8 +52,8 @@ func startGin() {
 	{
 		groups := v1.Group("/groups")
 		{
-			groups.GET("/", controllers.GroupIndex)
-			groups.POST("/", controllers.GroupCreate)
+			groups.GET("", controllers.GroupIndex)
+			groups.POST("", controllers.GroupCreate)
 
 			groups.GET("/:id", controllers.GroupShow)
 			groups.PUT("/:id", controllers.GroupUpdate)
@@ -61,10 +62,10 @@ func startGin() {
 
 		users := v1.Group("/users")
 		{
-			users.GET("/", controllers.UserIndex)
+			users.GET("", controllers.UserIndex)
+			users.POST("", controllers.UserCreate)
 
 			users.GET("/:id", controllers.UserShow)
-			users.POST("/", controllers.UserCreate)
 			users.PUT("/:id", controllers.UserUpdate)
 			users.DELETE("/:id", controllers.UserDelete)
 		}
@@ -87,6 +88,10 @@ func Cors() gin.HandlerFunc {
 		c.Writer.Header().Add("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 
-		c.Next()
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+		} else {
+			c.Next()
+		}
 	}
 }

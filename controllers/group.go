@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"payup/database"
@@ -50,11 +51,22 @@ func GroupShow(c *gin.Context) {
 func GroupCreate(c *gin.Context) {
 
 	var group models.Group
-	c.Bind(&group)
-	c.JSON(200, group)
+	buffer, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		c.AbortWithError(406, err)
+	}
+
+	err2 := jsonapi.UnmarshalFromJSON(buffer, &group)
+
+	if err2 != nil {
+		c.AbortWithError(405, err2)
+	}
+
+	// c.Bind(&group)
+	// c.JSON(200, group)
 	// database.DBCon.Create(&group)
 
-	// c.JSON(http.StatusOK, gin.H{"group": c.PostForm("group")})
+	c.JSON(http.StatusOK, gin.H{"group": group})
 }
 
 // GroupUpdate is used to update a specific group, it'll also come with some form data'
