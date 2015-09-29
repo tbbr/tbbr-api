@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"payup/controllers"
 	"payup/database"
 	"runtime"
@@ -9,12 +10,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
+	"github.com/stretchr/gomniauth"
+	"github.com/stretchr/gomniauth/providers/facebook"
+	"github.com/stretchr/signature"
 )
 
 func main() {
 
 	configRuntime()
 	bootstrap()
+	setupAuthProviders()
 	startGin()
 }
 
@@ -37,20 +42,28 @@ func bootstrap() {
 	}
 }
 
+func setupAuthProviders() {
+	gomniauth.SetSecurityKey(signature.RandomKey(64))
+	gomniauth.WithProviders(
+		facebook.New("1501190760202574", "3a6ff6249d6cb19cb4fca24c24fed565", "http://localhost:8080/auth/facebook/callback"),
+	)
+
+}
+
 func startGin() {
 	// Creates a gin router with default middlewares:
 	// logger and recovery (crash-free) middlewares
 	router := gin.Default()
 	router.RedirectTrailingSlash = true
 
-	// Handle assets and index.html file
-	// router.Static("/", "index.html")
-
 	router.Use(Cors())
 
-	v1 := router.Group("/v1")
+	router.GET("", func(c *gin.Context) {
+		c.String(http.StatusOK, "Welcome to PayUp's API")
+	})
+
 	{
-		groups := v1.Group("/groups")
+		groups := router.Group("/groups")
 		{
 			groups.GET("", controllers.GroupIndex)
 			groups.POST("", controllers.GroupCreate)
@@ -60,21 +73,25 @@ func startGin() {
 			groups.DELETE("/:id", controllers.GroupDelete)
 		}
 
-		users := v1.Group("/users")
+		users := router.Group("/users")
 		{
 			users.GET("", controllers.UserIndex)
 			users.POST("", controllers.UserCreate)
-
 			users.GET("/:id", controllers.UserShow)
 			users.PUT("/:id", controllers.UserUpdate)
 			users.DELETE("/:id", controllers.UserDelete)
 		}
 
-		transactions := v1.Group("/transactions")
+		transactions := router.Group("/transactions")
 		{
 			transactions.POST("/", controllers.TransactionCreate)
 			transactions.GET("/", controllers.TransactionIndex)
 
+		}
+		auth := router.Group("/auth")
+		{
+			auth.GET("/:provider/login", controllers.AuthLogin)
+			auth.GET("/:provider/callback", controllers.AuthCallback)
 		}
 	}
 
@@ -82,7 +99,7 @@ func startGin() {
 	router.Run(":8080")
 }
 
-// Cors Enables cors for the api
+// Cors - Enables cors for the api
 func Cors() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Add("Access-Control-Allow-Origin", "*")
