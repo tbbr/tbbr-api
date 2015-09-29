@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"payup/controllers"
 	"payup/database"
 	"runtime"
@@ -10,9 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
-	"github.com/stretchr/gomniauth"
-	"github.com/stretchr/gomniauth/providers/facebook"
-	"github.com/stretchr/signature"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/facebook"
 )
 
 func main() {
@@ -43,10 +44,13 @@ func bootstrap() {
 }
 
 func setupAuthProviders() {
-	gomniauth.SetSecurityKey(signature.RandomKey(64))
-	gomniauth.WithProviders(
-		facebook.New("1501190760202574", "3a6ff6249d6cb19cb4fca24c24fed565", "http://localhost:8080/auth/facebook/callback"),
+	goth.UseProviders(
+		facebook.New(os.Getenv("FACEBOOK_KEY"), os.Getenv("FACEBOOK_SECRET"), "http://localhost:8080/auth/facebook/callback"),
 	)
+
+	gothic.GetProviderName = func(req *http.Request) (string, error) {
+		return "facebook", nil
+	}
 
 }
 
@@ -90,7 +94,9 @@ func startGin() {
 		}
 		auth := router.Group("/auth")
 		{
-			auth.GET("/:provider/login", controllers.AuthLogin)
+			auth.GET("/:provider/login", func(c *gin.Context) {
+				controllers.AuthLogin(c)
+			})
 			auth.GET("/:provider/callback", controllers.AuthCallback)
 		}
 	}
