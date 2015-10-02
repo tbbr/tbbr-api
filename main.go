@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"payup/auth"
 	"payup/controllers"
 	"payup/database"
+	"payup/models"
 	"runtime"
 
 	"github.com/gin-gonic/gin"
@@ -98,6 +100,37 @@ func startGin() {
 				controllers.AuthLogin(c)
 			})
 			auth.GET("/:provider/callback", controllers.AuthCallback)
+		}
+		tokens := router.Group("/tokens")
+		{
+			tokens.POST("/oauth/grant", func(c *gin.Context) {
+
+				_ = "breakpoint"
+
+				userInfo, err := authr.GetFacebookUserInfo(c.PostForm("auth_code"), c.Request.Referer())
+
+				if err != nil {
+					c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
+				}
+
+				// Find or create user
+				var user models.User
+
+				database.DBCon.Where(models.User{
+					ExternalID: userInfo.UserID,
+				}).Attrs(models.User{
+					Name: userInfo.Name,
+				}).FirstOrCreate(&user)
+
+				token := models.Token{
+					Category: "oAuth",
+					UserID:   user.ID,
+				}
+
+				database.DBCon.Create(&token)
+
+				c.JSON(http.StatusOK, token)
+			})
 		}
 	}
 

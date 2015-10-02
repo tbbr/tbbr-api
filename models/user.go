@@ -9,14 +9,15 @@ import (
 
 // User model
 type User struct {
-	ID        uint `jsonapi:"-"`
-	Name      string
-	Username  string
-	Email     string
-	Groups    []Group `gorm:"many2many:group_users;" jsonapi:"-"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time `jsonapi:"-"`
+	ID         uint `jsonapi:"-"`
+	Name       string
+	Username   string
+	Email      string
+	ExternalID string
+	Groups     []Group `gorm:"many2many:group_users;" jsonapi:"-"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  *time.Time `jsonapi:"-"`
 }
 
 // GetID returns a stringified version of an ID

@@ -30,5 +30,7 @@ func AuthCallback(c *gin.Context) {
 		fmt.Printf(err.Error())
 	}
 
+	// c.Redirect(http.StatusFound, "http://localhost:4200")
+
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
