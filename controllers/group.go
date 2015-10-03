@@ -16,7 +16,9 @@ import (
 // come with some query parameters like limit and offset
 // @returns an array of group structs
 func GroupIndex(c *gin.Context) {
-	var groups []models.Group
+	groups := []models.Group{}
+
+	// database.DBCon.Preload("Users").Find(&groups)
 	database.DBCon.Limit(c.Param("limit")).Find(&groups)
 
 	data, err := jsonapi.MarshalToJSON(groups)
@@ -62,11 +64,9 @@ func GroupCreate(c *gin.Context) {
 		c.AbortWithError(405, err2)
 	}
 
-	// c.Bind(&group)
-	// c.JSON(200, group)
-	// database.DBCon.Create(&group)
+	database.DBCon.Create(&group)
 
-	c.JSON(http.StatusOK, gin.H{"group": group})
+	c.JSON(http.StatusCreated, gin.H{"group": group})
 }
 
 // GroupUpdate is used to update a specific group, it'll also come with some form data'
