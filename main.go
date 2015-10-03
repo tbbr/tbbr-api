@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"payup/auth"
 	"payup/controllers"
 	"payup/database"
-	"payup/models"
 	"runtime"
 
 	"github.com/gin-gonic/gin"
@@ -94,43 +92,9 @@ func startGin() {
 			transactions.GET("/", controllers.TransactionIndex)
 
 		}
-		auth := router.Group("/auth")
-		{
-			auth.GET("/:provider/login", func(c *gin.Context) {
-				controllers.AuthLogin(c)
-			})
-			auth.GET("/:provider/callback", controllers.AuthCallback)
-		}
 		tokens := router.Group("/tokens")
 		{
-			tokens.POST("/oauth/grant", func(c *gin.Context) {
-				userInfo, err := authr.GetFacebookUserInfo(c.PostForm("auth_code"), c.Request.Referer())
-
-				if err != nil {
-					c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
-				}
-
-				// Find or create user
-				var user models.User
-
-				database.DBCon.Where(models.User{
-					ExternalID: userInfo.UserID,
-				}).Attrs(models.User{
-					Name:      userInfo.Name,
-					Email:     userInfo.Email,
-					Gender:    userInfo.Gender,
-					AvatarURL: userInfo.AvatarURL,
-				}).FirstOrCreate(&user)
-
-				token := models.Token{
-					Category: "oAuth",
-					UserID:   user.ID,
-				}
-
-				database.DBCon.Create(&token)
-
-				c.JSON(http.StatusOK, token)
-			})
+			tokens.POST("/oauth/grant", controllers.TokenOAuthGrant)
 		}
 	}
 
