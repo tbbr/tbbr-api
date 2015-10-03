@@ -49,9 +49,8 @@ func UserShow(c *gin.Context) {
 func UserCreate(c *gin.Context) {
 
 	user := models.User{
-		Name:     c.PostForm("name"),
-		Username: c.PostForm("username"),
-		Email:    c.PostForm("email"),
+		Name:  c.PostForm("name"),
+		Email: c.PostForm("email"),
 	}
 
 	database.DBCon.Create(&user)

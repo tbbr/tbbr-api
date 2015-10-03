@@ -104,9 +104,6 @@ func startGin() {
 		tokens := router.Group("/tokens")
 		{
 			tokens.POST("/oauth/grant", func(c *gin.Context) {
-
-				_ = "breakpoint"
-
 				userInfo, err := authr.GetFacebookUserInfo(c.PostForm("auth_code"), c.Request.Referer())
 
 				if err != nil {
@@ -119,7 +116,10 @@ func startGin() {
 				database.DBCon.Where(models.User{
 					ExternalID: userInfo.UserID,
 				}).Attrs(models.User{
-					Name: userInfo.Name,
+					Name:      userInfo.Name,
+					Email:     userInfo.Email,
+					Gender:    userInfo.Gender,
+					AvatarURL: userInfo.AvatarURL,
 				}).FirstOrCreate(&user)
 
 				token := models.Token{

@@ -11,8 +11,9 @@ import (
 type User struct {
 	ID         uint `jsonapi:"-"`
 	Name       string
-	Username   string
 	Email      string
+	Gender     string
+	AvatarURL  string
 	ExternalID string
 	Groups     []Group `gorm:"many2many:group_users;" jsonapi:"-"`
 	CreatedAt  time.Time
