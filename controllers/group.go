@@ -19,7 +19,7 @@ func GroupIndex(c *gin.Context) {
 	groups := []models.Group{}
 
 	// database.DBCon.Preload("Users").Find(&groups)
-	database.DBCon.Limit(c.Param("limit")).Find(&groups)
+	database.DBCon.Preload("Users").Find(&groups)
 
 	data, err := jsonapi.MarshalToJSON(groups)
 
@@ -39,7 +39,7 @@ func GroupShow(c *gin.Context) {
 	database.DBCon.First(&group, c.Param("id"))
 	database.DBCon.Model(&group).Related(&users, "Users")
 	group.Users = users
-	data, err := jsonapi.MarshalToJSON(jsonapi.MarshalIncludedRelations(group))
+	data, err := jsonapi.MarshalToJSON(group)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
@@ -55,7 +55,7 @@ func GroupCreate(c *gin.Context) {
 	var group models.Group
 	buffer, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		c.AbortWithError(406, err)
+		c.AbortWithError(http.StatusNotAcceptable, err)
 	}
 
 	err2 := jsonapi.UnmarshalFromJSON(buffer, &group)
@@ -72,6 +72,20 @@ func GroupCreate(c *gin.Context) {
 // GroupUpdate is used to update a specific group, it'll also come with some form data'
 // @returns a group struct
 func GroupUpdate(c *gin.Context) {
+	var group models.Group
+	buffer, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		c.AbortWithError(http.StatusNotAcceptable, err)
+	}
+
+	err2 := jsonapi.UnmarshalFromJSON(buffer, &group)
+
+	if err2 != nil {
+		c.AbortWithError(http.StatusMethodNotAllowed, err2)
+	}
+
+	_ = "breakpoint"
+
 	c.JSON(http.StatusOK, gin.H{"groupUpdate": "someContent"})
 }
 

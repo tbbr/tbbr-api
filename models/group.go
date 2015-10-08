@@ -41,7 +41,7 @@ func (g *Group) SetID(id string) error {
 	return nil
 }
 
-// SetToManyReferenceIDs sets the sweets reference IDs and satisfies the jsonapi.UnmarshalToManyRelations interface
+// SetToManyReferenceIDs sets the users reference IDs and satisfies the jsonapi.UnmarshalToManyRelations interface
 func (g *Group) SetToManyReferenceIDs(name string, IDs []string) error {
 	if name == "users" {
 		for _, i := range IDs {

@@ -73,7 +73,7 @@ func startGin() {
 			groups.POST("", controllers.GroupCreate)
 
 			groups.GET("/:id", controllers.GroupShow)
-			groups.PUT("/:id", controllers.GroupUpdate)
+			groups.PATCH("/:id", controllers.GroupUpdate)
 			groups.DELETE("/:id", controllers.GroupDelete)
 		}
 
@@ -88,8 +88,8 @@ func startGin() {
 
 		transactions := router.Group("/transactions")
 		{
-			transactions.POST("/", controllers.TransactionCreate)
-			transactions.GET("/", controllers.TransactionIndex)
+			transactions.POST("", controllers.TransactionCreate)
+			transactions.GET("", controllers.TransactionIndex)
 
 		}
 		tokens := router.Group("/tokens")
@@ -107,6 +107,7 @@ func Cors() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Add("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+		c.Writer.Header().Add("Access-Control-Allow-Methods", "HEAD, GET, PATCH, POST, DELETE")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(200)

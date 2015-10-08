@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"payup/database"
 	"payup/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/manyminds/api2go/jsonapi"
 )
 
 // TransactionIndex outputs a certain number of transactions
@@ -17,17 +19,33 @@ func TransactionIndex(c *gin.Context) {
 
 // TransactionCreate will create a transaction that occurs
 // between two users in a group
+// @parameters
+//		@requires	type
+//		@requires amount
+//		@requires group_id
+//		@requires lender_id
+//		@requires	burrower_id
 // @returns the newly created transaction
 func TransactionCreate(c *gin.Context) {
-	var t models.Transaction
+	var transaction models.Transaction
+	buffer, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		c.AbortWithError(http.StatusNotAcceptable, err)
+	}
 
-	t.Amount = 150
-	t.Comment = "I bought Brandon Coffee"
-	t.LenderID = 1
-	t.BurrowerID = 3
-	t.GroupID = 2
+	err2 := jsonapi.UnmarshalFromJSON(buffer, &transaction)
 
-	database.DBCon.Create(&t)
+	if err2 != nil {
+		c.AbortWithError(http.StatusMethodNotAllowed, err2)
+	}
 
-	c.JSON(http.StatusOK, gin.H{"transaction": t})
+	database.DBCon.Create(&transaction)
+
+	data, err := jsonapi.MarshalToJSON(transaction)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
+	}
+
+	c.Data(http.StatusCreated, "application/vnd.api+json", data)
 }
