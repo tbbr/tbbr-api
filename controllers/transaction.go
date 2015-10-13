@@ -20,11 +20,16 @@ func TransactionIndex(c *gin.Context) {
 
 	var transactions []models.Transaction
 
-	database.DBCon.
-		Where("lender_id = ? AND burrower_id = ?", userID, curUserID).
-		Or("lender_id = ? AND burrower_id = ?", curUserID, userID).
-		Where("group_id = ?", groupID).
-		Find(&transactions)
+	if userID != "" && groupID != "" {
+		database.DBCon.
+			Where("lender_id = ? AND burrower_id = ? AND group_id = ?", userID, curUserID, groupID).
+			Or("lender_id = ? AND burrower_id = ? AND group_id = ?", curUserID, userID, groupID).
+			Find(&transactions)
+	} else {
+		database.DBCon.
+			Where("lender_id = ? OR burrower_id", curUserID, curUserID).
+			Find(&transactions)
+	}
 
 	data, err := jsonapi.MarshalToJSON(transactions)
 
