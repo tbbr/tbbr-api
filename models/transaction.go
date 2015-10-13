@@ -10,7 +10,7 @@ import (
 type Transaction struct {
 	ID         uint `json:"id"`
 	Type       string
-	Amount     int32      `json:"amount"`
+	Amount     int        `json:"amount"`
 	Comment    string     `json:"comment"`
 	LenderID   uint       `json:"lenderId"`
 	BurrowerID uint       `json:"burrowerId"`

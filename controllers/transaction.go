@@ -14,7 +14,26 @@ import (
 // TransactionIndex outputs a certain number of transactions
 // will always be scoped to the current user
 func TransactionIndex(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"transactions": "Sup"})
+	userID := c.Query("userId")
+	groupID := c.Query("groupId")
+	curUserID := 11 // Should get this from the Authorization header that gets sent
+
+	var transactions []models.Transaction
+
+	database.DBCon.
+		Where("lender_id = ? AND burrower_id = ?", userID, curUserID).
+		Or("lender_id = ? AND burrower_id = ?", curUserID, userID).
+		Where("group_id = ?", groupID).
+		Find(&transactions)
+
+	data, err := jsonapi.MarshalToJSON(transactions)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
+	}
+
+	c.Data(http.StatusOK, "application/vnd.api+json", data)
+
 }
 
 // TransactionCreate will create a transaction that occurs

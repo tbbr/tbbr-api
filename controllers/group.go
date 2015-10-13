@@ -84,9 +84,22 @@ func GroupUpdate(c *gin.Context) {
 		c.AbortWithError(http.StatusMethodNotAllowed, err2)
 	}
 
-	_ = "breakpoint"
+	// Little hack-ish
+	for _, c := range group.UserIDs {
+		group.Users = append(group.Users, models.User{ID: c})
+	}
 
-	c.JSON(http.StatusOK, gin.H{"groupUpdate": "someContent"})
+	database.DBCon.Model(&group).Association("Users").Replace(group.Users)
+	database.DBCon.First(&group, group.ID)
+	database.DBCon.Model(&group).Related(&group.Users, "Users")
+
+	data, err := jsonapi.MarshalToJSON(group)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
+	}
+
+	c.Data(http.StatusOK, "application/vnd.api+json", data)
 }
 
 // GroupDelete is used to delete one specific group with a `id`

@@ -27,8 +27,8 @@ type data struct {
 	URL string `json:"url"`
 }
 
-// GetFacebookUserInfo validates an authToken that
-// is from facebook client
+// GetFacebookUserInfo validates an authCode that
+// is sent from a client
 func GetFacebookUserInfo(authCode string, referrer string) (FacebookUserInfo, error) {
 	v := url.Values{}
 	v.Set("client_id", os.Getenv("FACEBOOK_KEY"))
