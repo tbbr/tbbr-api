@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"payup/app-error"
 	"payup/database"
 	"payup/models"
 
@@ -24,7 +25,7 @@ func GroupIndex(c *gin.Context) {
 	data, err := jsonapi.MarshalToJSON(groups)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
+		// c.Error(appError.NewErr(appError.JSONParseFailure, http.StatusInternalServerError, err.Error()))
 	}
 
 	c.Data(http.StatusOK, "application/vnd.api+json", data)
@@ -36,13 +37,20 @@ func GroupShow(c *gin.Context) {
 	var group models.Group
 	var users []models.User
 
-	database.DBCon.First(&group, c.Param("id"))
+	if database.DBCon.First(&group, c.Param("id")).RecordNotFound() {
+		c.AbortWithError(http.StatusNotFound, appError.RecordNotFound).
+			SetMeta(appError.RecordNotFound)
+		return
+	}
+
 	database.DBCon.Model(&group).Related(&users, "Users")
 	group.Users = users
 	data, err := jsonapi.MarshalToJSON(group)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
+		c.AbortWithError(http.StatusInternalServerError, err).
+			SetMeta(appError.JSONParseFailure)
+		return
 	}
 
 	c.Data(http.StatusOK, "application/vnd.api+json", data)
@@ -61,7 +69,9 @@ func GroupCreate(c *gin.Context) {
 	err2 := jsonapi.UnmarshalFromJSON(buffer, &group)
 
 	if err2 != nil {
-		c.AbortWithError(405, err2)
+		c.AbortWithError(http.StatusInternalServerError, err).
+			SetMeta(appError.JSONParseFailure)
+		return
 	}
 
 	database.DBCon.Create(&group)
@@ -74,6 +84,7 @@ func GroupCreate(c *gin.Context) {
 func GroupUpdate(c *gin.Context) {
 	var group models.Group
 	buffer, err := ioutil.ReadAll(c.Request.Body)
+
 	if err != nil {
 		c.AbortWithError(http.StatusNotAcceptable, err)
 	}
@@ -81,7 +92,9 @@ func GroupUpdate(c *gin.Context) {
 	err2 := jsonapi.UnmarshalFromJSON(buffer, &group)
 
 	if err2 != nil {
-		c.AbortWithError(http.StatusMethodNotAllowed, err2)
+		c.AbortWithError(http.StatusInternalServerError, err).
+			SetMeta(appError.JSONParseFailure)
+		return
 	}
 
 	// Little hack-ish
@@ -96,7 +109,9 @@ func GroupUpdate(c *gin.Context) {
 	data, err := jsonapi.MarshalToJSON(group)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
+		c.AbortWithError(http.StatusInternalServerError, err).
+			SetMeta(appError.JSONParseFailure)
+		return
 	}
 
 	c.Data(http.StatusOK, "application/vnd.api+json", data)

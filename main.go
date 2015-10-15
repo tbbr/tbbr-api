@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"payup/app-error"
 	"payup/controllers"
 	"payup/database"
 	"runtime"
@@ -61,6 +62,7 @@ func startGin() {
 	router.RedirectTrailingSlash = true
 
 	router.Use(Cors())
+	router.Use(handleErrors())
 
 	router.GET("", func(c *gin.Context) {
 		c.String(http.StatusOK, "Welcome to PayUp's API")
@@ -113,6 +115,24 @@ func Cors() gin.HandlerFunc {
 			c.AbortWithStatus(200)
 		} else {
 			c.Next()
+		}
+	}
+}
+
+func handleErrors() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+
+		if len(c.Errors) > 0 {
+			errors := []*appError.Err{}
+
+			for _, e := range c.Errors {
+				err := e.Meta.(*appError.Err)
+				errors = append(errors, err)
+			}
+
+			// Use Status of first error
+			c.JSON(errors[0].Status, gin.H{"errors": errors})
 		}
 	}
 }
