@@ -18,14 +18,17 @@ import (
 // @returns an array of group structs
 func GroupIndex(c *gin.Context) {
 	groups := []models.Group{}
+	var curUser models.User
+	database.DBCon.First(&curUser, c.Keys["CurrentUserID"])
 
-	// database.DBCon.Preload("Users").Find(&groups)
-	database.DBCon.Preload("Users").Find(&groups)
+	database.DBCon.Model(&curUser).Preload("Users").Related(&groups, "Groups")
 
 	data, err := jsonapi.MarshalToJSON(groups)
 
 	if err != nil {
-		// c.Error(appError.NewErr(appError.JSONParseFailure, http.StatusInternalServerError, err.Error()))
+		c.AbortWithError(http.StatusInternalServerError, err).
+			SetMeta(appError.JSONParseFailure)
+		return
 	}
 
 	c.Data(http.StatusOK, "application/vnd.api+json", data)

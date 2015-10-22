@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"os"
 	"payup/app-error"
+	"payup/auth"
 	"payup/controllers"
 	"payup/database"
 	"runtime"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -62,6 +64,7 @@ func startGin() {
 	router.RedirectTrailingSlash = true
 
 	router.Use(Cors())
+	router.Use(OAuthMiddleware())
 	router.Use(handleErrors())
 
 	router.GET("", func(c *gin.Context) {
@@ -108,7 +111,7 @@ func startGin() {
 func Cors() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Add("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+		c.Writer.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
 		c.Writer.Header().Add("Access-Control-Allow-Methods", "HEAD, GET, PATCH, POST, DELETE")
 
 		if c.Request.Method == "OPTIONS" {
@@ -134,5 +137,34 @@ func handleErrors() gin.HandlerFunc {
 			// Use Status of first error
 			c.JSON(errors[0].Status, gin.H{"errors": errors})
 		}
+	}
+}
+
+// OAuthMiddleware handles validation of the authoriation code
+func OAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authorization := c.Request.Header.Get("Authorization")
+		if authorization == "" {
+			c.Next()
+			return
+		}
+
+		accessToken := strings.SplitAfter(authorization, "Bearer ")[1]
+		token, err := auth.GetToken(accessToken)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err).
+				SetMeta(err)
+			return
+		}
+
+		// Check that token hasn't expired here
+
+		// Attach the current user's id onto the context
+
+		c.Keys = make(map[string]interface{})
+		c.Keys["CurrentUserID"] = token.UserID
+
+		c.Next()
+
 	}
 }

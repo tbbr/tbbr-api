@@ -28,11 +28,15 @@ func (u User) GetID() string {
 
 // GetReferences returns all related structs to groups
 func (u User) GetReferences() []jsonapi.Reference {
+	// TODO:: Uncommenting the groups relation will endup with an empty array
+	// relation for users in the response, which isn't necessarily true
+	// We'll need to fix this on the routeHandler level
+
 	return []jsonapi.Reference{
-		{
-			Type: "groups",
-			Name: "groups",
-		},
+	// {
+	// 	Type: "groups",
+	// 	Name: "groups",
+	// },
 	}
 }
 

@@ -1,5 +1,7 @@
 package appError
 
+import "net/http"
+
 // Err obj used to create application specific errors that conform
 // to the JSONApi spec
 type Err struct {
@@ -26,8 +28,28 @@ func NewErr(status int, code string, detail string) Err {
 
 // Application specific error codes
 var (
-	RecordNotFound = &Err{404, "1000", "RecordNotFound", "The requested record was not found in the database"}
-	// RecordValidationFail = "record_validation_fail"
-
-	JSONParseFailure = &Err{404, "3000", "JSONParseFailure", "The server encountered an error while parsing JSON"}
+	RecordNotFound = Err{
+		http.StatusNotFound,
+		"1000",
+		"RecordNotFound",
+		"The requested record was not found in the database",
+	}
+	RecordValidationFailure = Err{
+		http.StatusBadRequest,
+		"1001",
+		"RecordValidationFailure",
+		"The validations on the record failed",
+	}
+	InvalidParams = Err{
+		http.StatusBadRequest,
+		"2001",
+		"IncorrectParams",
+		"The request sent had invalid params",
+	}
+	JSONParseFailure = Err{
+		http.StatusInternalServerError,
+		"3000",
+		"JSONParseFailure",
+		"The server encountered an error while parsing JSON",
+	}
 )
