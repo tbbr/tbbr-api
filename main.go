@@ -9,7 +9,6 @@ import (
 	"payup/controllers"
 	"payup/database"
 	"runtime"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -20,7 +19,6 @@ import (
 )
 
 func main() {
-
 	configRuntime()
 	bootstrap()
 	setupAuthProviders()
@@ -64,15 +62,15 @@ func startGin() {
 	router.RedirectTrailingSlash = true
 
 	router.Use(Cors())
-	router.Use(OAuthMiddleware())
 	router.Use(handleErrors())
 
 	router.GET("", func(c *gin.Context) {
 		c.String(http.StatusOK, "Welcome to PayUp's API")
 	})
 
+	authorized := router.Group("", OAuthMiddleware())
 	{
-		groups := router.Group("/groups")
+		groups := authorized.Group("/groups")
 		{
 			groups.GET("", controllers.GroupIndex)
 			groups.POST("", controllers.GroupCreate)
@@ -82,7 +80,7 @@ func startGin() {
 			groups.DELETE("/:id", controllers.GroupDelete)
 		}
 
-		users := router.Group("/users")
+		users := authorized.Group("/users")
 		{
 			users.GET("", controllers.UserIndex)
 			users.POST("", controllers.UserCreate)
@@ -91,7 +89,7 @@ func startGin() {
 			users.DELETE("/:id", controllers.UserDelete)
 		}
 
-		transactions := router.Group("/transactions")
+		transactions := authorized.Group("/transactions")
 		{
 			transactions.POST("", controllers.TransactionCreate)
 			transactions.GET("", controllers.TransactionIndex)
@@ -127,13 +125,12 @@ func handleErrors() gin.HandlerFunc {
 		c.Next()
 
 		if len(c.Errors) > 0 {
-			errors := []*appError.Err{}
+			errors := []appError.Err{}
 
 			for _, e := range c.Errors {
-				err := e.Meta.(*appError.Err)
+				err := e.Meta.(appError.Err)
 				errors = append(errors, err)
 			}
-
 			// Use Status of first error
 			c.JSON(errors[0].Status, gin.H{"errors": errors})
 		}
@@ -145,22 +142,29 @@ func OAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorization := c.Request.Header.Get("Authorization")
 		if authorization == "" {
-			c.Next()
+			c.Abort()
+			errors := []appError.Err{appError.AuthorizationMissing}
+			c.JSON(errors[0].Status, gin.H{"errors": errors})
 			return
 		}
 
-		accessToken := strings.SplitAfter(authorization, "Bearer ")[1]
-		token, err := auth.GetToken(accessToken)
+		token, err := auth.GetToken(authorization)
+
 		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, err).
-				SetMeta(err)
+			c.Abort()
+			errors := []appError.Err{err.(appError.Err)}
+			c.JSON(errors[0].Status, gin.H{"errors": errors})
 			return
 		}
 
 		// Check that token hasn't expired here
+		if token.Expired() {
+			c.Abort()
+			errors := []appError.Err{appError.AccessTokenExpired}
+			c.JSON(errors[0].Status, gin.H{"errors": errors})
+		}
 
 		// Attach the current user's id onto the context
-
 		c.Keys = make(map[string]interface{})
 		c.Keys["CurrentUserID"] = token.UserID
 

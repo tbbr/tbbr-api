@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// BalanceUser model
-type BalanceUser struct {
+// Balance model
+type Balance struct {
 	ID            uint `json:"id"`
 	Amount        int
 	UserID        uint
@@ -18,16 +18,16 @@ type BalanceUser struct {
 }
 
 // GetID returns a stringified version of an ID
-func (bu BalanceUser) GetID() string {
-	return strconv.FormatUint(uint64(bu.ID), 10)
+func (b Balance) GetID() string {
+	return strconv.FormatUint(uint64(b.ID), 10)
 }
 
 // SetID to satisfy jsonapi.UnmarshalIdentifier interface
-func (bu *BalanceUser) SetID(id string) error {
-	balanceUserID, err := strconv.ParseUint(id, 10, 64)
+func (b *Balance) SetID(id string) error {
+	balanceID, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
 		return err
 	}
-	bu.ID = uint(balanceUserID)
+	b.ID = uint(balanceID)
 	return nil
 }

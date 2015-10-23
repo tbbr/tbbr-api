@@ -42,7 +42,7 @@ var (
 	}
 	InvalidParams = Err{
 		http.StatusBadRequest,
-		"2001",
+		"2000",
 		"IncorrectParams",
 		"The request sent had invalid params",
 	}
@@ -51,5 +51,24 @@ var (
 		"3000",
 		"JSONParseFailure",
 		"The server encountered an error while parsing JSON",
+	}
+
+	AuthorizationMissing = Err{
+		http.StatusUnauthorized,
+		"4000",
+		"AuthorizationMissing",
+		"The authorization header is missing in the request",
+	}
+	InvalidAuthorization = Err{
+		http.StatusUnauthorized,
+		"4001",
+		"InvalidAuthorization",
+		"The access token given was invalid",
+	}
+	AccessTokenExpired = Err{
+		http.StatusUnauthorized,
+		"4001",
+		"AccessTokenExpired",
+		"The access token has expired, you can ask for another one using your refresh token",
 	}
 )

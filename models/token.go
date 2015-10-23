@@ -16,7 +16,6 @@ type Token struct {
 	RefreshToken      string `json:"refreshToken"`
 	RefreshExpiration time.Time
 	AuthExpiration    time.Time
-	Expired           bool       `json:"expired"`
 	UserID            uint       `json:"userId"`
 	CreatedAt         time.Time  `json:"createdAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`
@@ -35,6 +34,10 @@ func (t *Token) BeforeCreate(db *gorm.DB) (err error) {
 	t.RefreshToken = uuid.NewV4().String()
 	t.RefreshExpiration = time.Now().AddDate(0, 0, 3)
 	t.AuthExpiration = time.Now().AddDate(0, 0, 1)
-	t.Expired = false
 	return
+}
+
+// Expired function returns true if the AccessToken has expired, and false otherwise
+func (t Token) Expired() bool {
+	return time.Now().After(t.AuthExpiration)
 }

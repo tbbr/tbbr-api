@@ -33,10 +33,10 @@ func (u User) GetReferences() []jsonapi.Reference {
 	// We'll need to fix this on the routeHandler level
 
 	return []jsonapi.Reference{
-	// {
-	// 	Type: "groups",
-	// 	Name: "groups",
-	// },
+		{
+			Type: "groups",
+			Name: "groups",
+		},
 	}
 }
 
