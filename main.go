@@ -83,7 +83,6 @@ func startGin() {
 		users := authorized.Group("/users")
 		{
 			users.GET("", controllers.UserIndex)
-			users.POST("", controllers.UserCreate)
 			users.GET("/:id", controllers.UserShow)
 			users.PUT("/:id", controllers.UserUpdate)
 			users.DELETE("/:id", controllers.UserDelete)

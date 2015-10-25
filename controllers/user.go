@@ -30,10 +30,7 @@ func UserIndex(c *gin.Context) {
 // @returns a user struct
 func UserShow(c *gin.Context) {
 	var user models.User
-	var groups []models.Group
-	database.DBCon.First(&user, c.Param("id"))
-	database.DBCon.Model(&user).Related(&groups, "Groups")
-	user.Groups = groups
+	database.DBCon.Preload("BalanceUsers").First(&user, c.Param("id"))
 
 	data, err := jsonapi.MarshalToJSON(jsonapi.MarshalIncludedRelations(user))
 
@@ -42,21 +39,6 @@ func UserShow(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/vnd.api+json", data)
-}
-
-// UserCreate is used to create one specific user, it'll come with some form data
-// @returns the newly created user struct
-func UserCreate(c *gin.Context) {
-
-	user := models.User{
-		Name:  c.PostForm("name"),
-		Email: c.PostForm("email"),
-	}
-
-	database.DBCon.Create(&user)
-
-	c.JSON(http.StatusOK, gin.H{"user": user})
-
 }
 
 // UserUpdate is used to update a specific user, it'll also come with some form data

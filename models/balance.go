@@ -1,20 +1,12 @@
 package models
 
-import (
-	"strconv"
-	"time"
-)
+import "strconv"
 
 // Balance model
 type Balance struct {
-	ID            uint `json:"id"`
-	Amount        int
-	UserID        uint
-	RelatedUserID uint
-	GroupID       uint
-	CreatedAt     time.Time  `json:"createdAt"`
-	UpdatedAt     time.Time  `json:"updatedAt"`
-	DeletedAt     *time.Time `json:"deletedAt"`
+	ID             uint
+	Amount         int
+	PositiveUserID uint
 }
 
 // GetID returns a stringified version of an ID

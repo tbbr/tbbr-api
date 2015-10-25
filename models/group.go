@@ -23,7 +23,6 @@ type Group struct {
 	HashID       string        `jsonapi:"name=hashId"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
-	DeletedAt    *time.Time `jsonapi:"-"`
 }
 
 // GetID returns a stringified version of an ID
