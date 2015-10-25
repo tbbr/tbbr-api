@@ -84,7 +84,7 @@ func startGin() {
 		{
 			users.GET("", controllers.UserIndex)
 			users.GET("/:id", controllers.UserShow)
-			users.PUT("/:id", controllers.UserUpdate)
+			users.PATCH("/:id", controllers.UserUpdate)
 			users.DELETE("/:id", controllers.UserDelete)
 		}
 

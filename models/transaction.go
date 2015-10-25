@@ -22,8 +22,8 @@ type Transaction struct {
 	UpdatedAt     time.Time
 	DeletedAt     *time.Time
 
-	Creator     User `jsonapi:"-"`
-	RelatedUser User `jsonapi:"-"`
+	Creator     User `jsonapi:"-" sql:"-"`
+	RelatedUser User `jsonapi:"-" sql:"-"`
 }
 
 // GetID returns a stringified version of an ID

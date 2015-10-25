@@ -72,14 +72,32 @@ func GroupCreate(c *gin.Context) {
 	err2 := jsonapi.UnmarshalFromJSON(buffer, &group)
 
 	if err2 != nil {
-		c.AbortWithError(http.StatusInternalServerError, err).
-			SetMeta(appError.JSONParseFailure)
+		parseFail := appError.JSONParseFailure
+		parseFail.Detail = err2.Error()
+		c.AbortWithError(http.StatusMethodNotAllowed, err2).
+			SetMeta(parseFail)
 		return
 	}
 
 	database.DBCon.Create(&group)
 
-	c.JSON(http.StatusCreated, gin.H{"group": group})
+	// Add current user to the group
+	database.DBCon.
+		Exec("INSERT INTO group_users (group_id, user_id) VALUES (?, ?)",
+		group.ID, c.Keys["CurrentUserID"].(uint))
+
+	database.DBCon.Model(&group).Related(&group.Users, "Users")
+
+	data, err3 := jsonapi.MarshalToJSON(&group)
+
+	if err3 != nil {
+		c.AbortWithError(http.StatusInternalServerError, err3).
+			SetMeta(appError.JSONParseFailure)
+		return
+	}
+
+	c.Data(http.StatusCreated, "application/vnd.api+json", data)
+
 }
 
 // GroupUpdate is used to update a specific group, it'll also come with some form data'
@@ -101,11 +119,15 @@ func GroupUpdate(c *gin.Context) {
 	}
 
 	// Little hack-ish
+	// Remove all current relations
+	database.DBCon.Exec("DELETE FROM group_users WHERE group_id = ?", group.ID)
+	// Add all the given relations
 	for _, c := range group.UserIDs {
-		group.Users = append(group.Users, models.User{ID: c})
+		database.DBCon.
+			Exec("INSERT INTO group_users (group_id, user_id) VALUES (?, ?)",
+			group.ID, c)
 	}
 
-	database.DBCon.Model(&group).Association("Users").Replace(group.Users)
 	database.DBCon.First(&group, group.ID)
 	database.DBCon.Model(&group).Related(&group.Users, "Users")
 

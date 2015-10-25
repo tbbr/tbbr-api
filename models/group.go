@@ -18,11 +18,12 @@ type Group struct {
 	Name         string
 	Description  string
 	Users        []User        `gorm:"many2many:group_users;" jsonapi:"-"`
-	UserIDs      []uint        `jsonapi:"-"`
 	Transactions []Transaction `jsonapi:"-"`
 	HashID       string        `jsonapi:"name=hashId"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+
+	UserIDs []uint `jsonapi:"-" sql:"-"`
 }
 
 // GetID returns a stringified version of an ID
