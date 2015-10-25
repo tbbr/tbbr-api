@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -78,47 +77,7 @@ func TransactionCreate(c *gin.Context) {
 		return
 	}
 
-	// // Find or create BalanceUser record
-	// var bu models.BalanceUser
-	// if database.DBCon.
-	// 	Where("user_id = ? AND related_user_id = ?", t.LenderID, t.BurrowerID).
-	// 	First(&bu).RecordNotFound() {
-	// 	// We didn't find a BalanceUser record, so we need to create relationships
-	// 	// and create a Balance record as well
-	// 	b := models.Balance{
-	// 		Amount:         t.Amount,
-	// 		PositiveUserID: t.LenderID,
-	// 	}
-	//
-	// 	database.DBCon.Create(&b)
-	//
-	// 	bu := models.BalanceUser{
-	// 		BalanceID:     b.ID,
-	// 		UserID:        t.LenderID,
-	// 		RelatedUserID: t.BurrowerID,
-	// 		GroupID:       t.GroupID,
-	// 	}
-	//
-	// 	bu2 := models.BalanceUser{
-	// 		BalanceID:     b.ID,
-	// 		UserID:        t.BurrowerID,
-	// 		RelatedUserID: t.LenderID,
-	// 		GroupID:       t.GroupID,
-	// 	}
-	//
-	// 	database.DBCon.Create(&bu)
-	// 	database.DBCon.Create(&bu2)
-	//
-	// } else {
-	// 	// Update Balance with the newly created transaction
-	// }
-
-	// // Attach BalanceID to Transaction
-	// t.BalanceID = bu.BalanceID
-
 	t.CreatorID = c.Keys["CurrentUserID"].(uint)
-
-	fmt.Print(t)
 
 	database.DBCon.Create(&t)
 
