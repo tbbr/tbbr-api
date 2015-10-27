@@ -34,7 +34,14 @@ func configRuntime() {
 func bootstrap() {
 
 	var err error
-	database.DBCon, err = gorm.Open("postgres", "user=maazali dbname=payup_backup sslmode=disable")
+
+	database.DBCon, err = gorm.Open("postgres",
+		fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
+			os.Getenv("PAYUP_DB_USER"),
+			os.Getenv("PAYUP_DB_PASSWORD"),
+			os.Getenv("PAYUP_DB_NAME"),
+		),
+	)
 
 	if err != nil {
 		fmt.Printf("Error occurred %s\n", err)

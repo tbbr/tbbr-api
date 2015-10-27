@@ -10,12 +10,12 @@ import (
 
 // Token model
 type Token struct {
-	ID                uint   `json:"id"`
-	Category          string `json:"category"`
-	AccessToken       string `json:"accessToken"`
-	RefreshToken      string `json:"refreshToken"`
-	RefreshExpiration time.Time
-	AuthExpiration    time.Time
+	ID                uint       `json:"id"`
+	Category          string     `json:"category"`
+	AccessToken       string     `json:"accessToken"`
+	RefreshToken      string     `json:"refreshToken"`
+	RefreshExpiration time.Time  `json:"refreshExpiration"`
+	AuthExpiration    time.Time  `json:"authExpiration"`
 	UserID            uint       `json:"userId"`
 	CreatedAt         time.Time  `json:"createdAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`
@@ -32,8 +32,8 @@ func (t Token) GetID() string {
 func (t *Token) BeforeCreate(db *gorm.DB) (err error) {
 	t.AccessToken = uuid.NewV4().String()
 	t.RefreshToken = uuid.NewV4().String()
-	t.RefreshExpiration = time.Now().AddDate(0, 0, 3)
-	t.AuthExpiration = time.Now().AddDate(0, 0, 1)
+	t.RefreshExpiration = time.Now().AddDate(0, 0, 3) // 3 days from now
+	t.AuthExpiration = time.Now().AddDate(0, 0, 1)    // 1 day from now
 	return
 }
 

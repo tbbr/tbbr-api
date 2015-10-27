@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -43,6 +44,7 @@ func GetFacebookUserInfo(authCode string, referrer string) (FacebookUserInfo, er
 	defer resp.Body.Close()
 	contents, _ := ioutil.ReadAll(resp.Body)
 	m, _ := url.ParseQuery(string(contents))
+	fmt.Print(m)
 	fbAccessToken := m["access_token"][0]
 
 	if fbAccessToken != "" && resp.StatusCode == 200 {
