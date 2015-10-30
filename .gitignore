@@ -1,2 +1,4 @@
 payup
 /*.dump
+/payup.conf
+/deploy.sh

@@ -72,7 +72,7 @@ func startGin() {
 	router.Use(handleErrors())
 
 	router.GET("", func(c *gin.Context) {
-		c.String(http.StatusOK, "Welcome to PayUp's API")
+		c.String(http.StatusOK, "Welcome to PayUp's API!!")
 	})
 
 	authorized := router.Group("", OAuthMiddleware())
