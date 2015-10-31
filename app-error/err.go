@@ -71,4 +71,11 @@ var (
 		"AccessTokenExpired",
 		"The access token has expired, you can ask for another one using your refresh token",
 	}
+
+	InsufficientPermission = Err{
+		http.StatusForbidden,
+		"5000",
+		"InsufficientPermission",
+		"The current user does not have permission to perform this action",
+	}
 )

@@ -97,9 +97,11 @@ func startGin() {
 
 		transactions := authorized.Group("/transactions")
 		{
-			transactions.POST("", controllers.TransactionCreate)
 			transactions.GET("", controllers.TransactionIndex)
+			transactions.POST("", controllers.TransactionCreate)
 
+			transactions.PATCH("/:id", controllers.TransactionUpdate)
+			transactions.DELETE("/:id", controllers.TransactionDelete)
 		}
 		tokens := router.Group("/tokens")
 		{

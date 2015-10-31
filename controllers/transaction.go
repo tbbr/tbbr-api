@@ -59,7 +59,7 @@ func TransactionIndex(c *gin.Context) {
 //		@requires group_id
 //		@requires related_user_id
 //		@optional memo
-// @returns the newly created transaction along with the updated Balance
+// @returns the newly created transaction
 func TransactionCreate(c *gin.Context) {
 	var t models.Transaction
 	buffer, err := ioutil.ReadAll(c.Request.Body)
@@ -93,4 +93,45 @@ func TransactionCreate(c *gin.Context) {
 	}
 
 	c.Data(http.StatusCreated, "application/vnd.api+json", data)
+}
+
+// TransactionUpdate will update an existing transaction
+// between two users in a group
+// @parameters
+//		@requires id
+//		@optional	type
+//		@optional amount
+//		@optional group_id
+//		@optional related_user_id
+//		@optional memo
+// @returns the updated transaction
+func TransactionUpdate(c *gin.Context) {
+	var t models.Transaction
+
+	c.JSON(http.StatusOK, t)
+}
+
+// TransactionDelete will delete an existing transaction
+// or throw an error
+// @parameters
+//		@requires id
+// @returns JSON meta property with status
+func TransactionDelete(c *gin.Context) {
+	var t models.Transaction
+	if database.DBCon.First(&t, c.Param("id")).RecordNotFound() {
+		c.AbortWithError(http.StatusNotFound, appError.RecordNotFound).
+			SetMeta(appError.RecordNotFound)
+		return
+	}
+
+	// Ensure current user is creator of transaction
+	if t.CreatorID != c.Keys["CurrentUserID"].(uint) {
+		c.AbortWithError(appError.InsufficientPermission.Status, appError.InsufficientPermission).
+			SetMeta(appError.InsufficientPermission)
+		return
+	}
+
+	database.DBCon.Delete(&t)
+
+	c.JSON(http.StatusOK, gin.H{"meta": gin.H{"success": true}})
 }
