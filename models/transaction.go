@@ -20,7 +20,7 @@ type Transaction struct {
 	CreatorID     uint `jsonapi:"name=creatorId"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
-	DeletedAt     *time.Time
+	DeletedAt     *time.Time `jsonapi:"-"`
 
 	Creator     User `jsonapi:"-" sql:"-"`
 	RelatedUser User `jsonapi:"-" sql:"-"`
