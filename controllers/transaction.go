@@ -107,8 +107,54 @@ func TransactionCreate(c *gin.Context) {
 // @returns the updated transaction
 func TransactionUpdate(c *gin.Context) {
 	var t models.Transaction
+	var newT models.Transaction
 
-	c.JSON(http.StatusOK, t)
+	if database.DBCon.First(&t, c.Param("id")).RecordNotFound() {
+		c.AbortWithError(http.StatusNotFound, appError.RecordNotFound).
+			SetMeta(appError.RecordNotFound)
+		return
+	}
+
+	// Ensure current user is creator of transaction
+	if t.CreatorID != c.Keys["CurrentUserID"].(uint) {
+		c.AbortWithError(appError.InsufficientPermission.Status, appError.InsufficientPermission).
+			SetMeta(appError.InsufficientPermission)
+		return
+	}
+
+	buffer, err := ioutil.ReadAll(c.Request.Body)
+
+	if err != nil {
+		c.AbortWithError(http.StatusNotAcceptable, err)
+	}
+
+	err2 := jsonapi.UnmarshalFromJSON(buffer, &newT)
+
+	if err2 != nil {
+		c.AbortWithError(http.StatusInternalServerError, err).
+			SetMeta(appError.JSONParseFailure)
+		return
+	}
+
+	t.Type = newT.Type
+	t.Amount = newT.Amount
+	t.Memo = newT.Memo
+
+	database.DBCon.Save(&t)
+
+	database.DBCon.First(&t.RelatedUser, t.RelatedUserID)
+	database.DBCon.First(&t.Creator, t.CreatorID)
+
+	data, err := jsonapi.MarshalToJSON(&t)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err).
+			SetMeta(appError.JSONParseFailure)
+		return
+	}
+
+	c.Data(http.StatusOK, "application/vnd.api+json", data)
+
 }
 
 // TransactionDelete will delete an existing transaction
