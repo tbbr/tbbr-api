@@ -71,11 +71,11 @@ func startGin() {
 	router.Use(Cors())
 	router.Use(handleErrors())
 
-	router.GET("", func(c *gin.Context) {
-		c.String(http.StatusOK, "Welcome to PayUp's API!!")
-	})
+	router.GET("", controllers.ServeIndex)
 
-	authorized := router.Group("", OAuthMiddleware())
+	router.NoRoute(controllers.ServeIndex)
+
+	authorized := router.Group("api", OAuthMiddleware())
 	{
 		groups := authorized.Group("/groups")
 		{
@@ -103,7 +103,7 @@ func startGin() {
 			transactions.PATCH("/:id", controllers.TransactionUpdate)
 			transactions.DELETE("/:id", controllers.TransactionDelete)
 		}
-		tokens := router.Group("/tokens")
+		tokens := router.Group("api/tokens")
 		{
 			tokens.POST("/oauth/grant", controllers.TokenOAuthGrant)
 		}
