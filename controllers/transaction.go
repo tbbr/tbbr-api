@@ -79,6 +79,15 @@ func TransactionCreate(c *gin.Context) {
 
 	t.CreatorID = c.Keys["CurrentUserID"].(uint)
 
+	// Validate our new transaction
+	isValid, errApp := t.Validate()
+
+	if isValid == false {
+		c.AbortWithError(errApp.Status, errApp).
+			SetMeta(errApp)
+		return
+	}
+
 	database.DBCon.Create(&t)
 
 	database.DBCon.First(&t.RelatedUser, t.RelatedUserID)
@@ -139,6 +148,15 @@ func TransactionUpdate(c *gin.Context) {
 	t.Type = newT.Type
 	t.Amount = newT.Amount
 	t.Memo = newT.Memo
+
+	// Validate our new transaction
+	isValid, errApp := t.Validate()
+
+	if isValid == false {
+		c.AbortWithError(errApp.Status, errApp).
+			SetMeta(errApp)
+		return
+	}
 
 	database.DBCon.Save(&t)
 

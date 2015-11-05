@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"payup/app-error"
 	"strconv"
 	"time"
 
@@ -24,6 +25,36 @@ type Transaction struct {
 
 	Creator     User `jsonapi:"-" sql:"-"`
 	RelatedUser User `jsonapi:"-" sql:"-"`
+}
+
+// Validate the transaction and return a boolean and appError
+func (t Transaction) Validate() (bool, appError.Err) {
+	if t.Type != "Borrow" && t.Type != "Lend" {
+		invalidType := appError.InvalidParams
+		invalidType.Detail = "The transaction type is invalid"
+		return false, invalidType
+	}
+
+	// Maximum amount of $10,000
+	if t.Amount > 1000000 || t.Amount < 0 {
+		invalidAmount := appError.InvalidParams
+		invalidAmount.Detail = "The transaction amount is out of range"
+		return false, invalidAmount
+	}
+
+	if len([]rune(t.Memo)) > 140 {
+		invalidMemo := appError.InvalidParams
+		invalidMemo.Detail = "The transaction memo must be less than or equal to 140 characters"
+		return false, invalidMemo
+	}
+
+	if t.RelatedUserID == 0 {
+		invalidID := appError.InvalidParams
+		invalidID.Detail = "The transaction relatedUserId cannot be 0"
+		return false, invalidID
+	}
+
+	return true, appError.Err{}
 }
 
 // GetID returns a stringified version of an ID

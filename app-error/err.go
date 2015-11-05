@@ -43,7 +43,7 @@ var (
 	InvalidParams = Err{
 		http.StatusBadRequest,
 		"2000",
-		"IncorrectParams",
+		"InvalidParams",
 		"The request sent had invalid params",
 	}
 	JSONParseFailure = Err{
