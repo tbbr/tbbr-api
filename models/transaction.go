@@ -72,12 +72,8 @@ func (t *Transaction) SetID(id string) error {
 	return nil
 }
 
-// GetReferences returns all related structs to groups
+// GetReferences returns all related structs to transactions
 func (t Transaction) GetReferences() []jsonapi.Reference {
-	// TODO:: Uncommenting the groups relation will endup with an empty array
-	// relation for users in the response, which isn't necessarily true
-	// We'll need to fix this on the routeHandler level
-
 	return []jsonapi.Reference{
 		{
 			Type: "users",

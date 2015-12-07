@@ -3,21 +3,23 @@ package auth
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	"payup/database"
+	"payup/models"
 )
 
 // FacebookUserInfo represents the model of a user that is returned
 // from facebook's oauth
 type FacebookUserInfo struct {
-	UserID    string `json:"id"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Gender    string `json:"gender"`
-	AvatarURL string
+	UserID      string `json:"id"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	Gender      string `json:"gender"`
+	AvatarURL   string
+	AccessToken string
 }
 
 type facebookPicture struct {
@@ -44,7 +46,6 @@ func GetFacebookUserInfo(authCode string, referrer string) (FacebookUserInfo, er
 	defer resp.Body.Close()
 	contents, _ := ioutil.ReadAll(resp.Body)
 	m, _ := url.ParseQuery(string(contents))
-	fmt.Print(m)
 	fbAccessToken := m["access_token"][0]
 
 	if fbAccessToken != "" && resp.StatusCode == 200 {
@@ -74,9 +75,41 @@ func GetFacebookUserInfo(authCode string, referrer string) (FacebookUserInfo, er
 			userInfo.AvatarURL = fbPic.PicData.URL
 		}
 
+		// Attach accessToken
+		userInfo.AccessToken = fbAccessToken
+
 		return userInfo, nil
 	}
 
 	return FacebookUserInfo{}, errors.New("Failed to get access token")
 
+}
+
+// UpdateFacebookUserFriends takes an authCode and a already created user, and
+// finds all their facebook friends and adds them into the the database.
+func UpdateFacebookUserFriends(fbAccessToken string, user models.User) {
+	s := url.Values{}
+	s.Set("access_token", fbAccessToken)
+
+	res, _ := http.Get("https://graph.facebook.com/me/friends?" + s.Encode())
+
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+
+	var v map[string]interface{}
+	json.Unmarshal(body, &v)
+	var friends []interface{}
+	friends = v["data"].([]interface{})
+
+	// TODO: Optimize this, it kinda sucks.
+	for _, friend := range friends {
+		friendExtID := friend.(map[string]interface{})["id"].(string)
+		var friendDB models.User
+		var friendship models.Friendship
+		database.DBCon.Where("external_id = ?", friendExtID).First(&friendDB)
+		database.DBCon.Where(models.Friendship{
+			UserID:   user.ID,
+			FriendID: friendDB.ID,
+		}).FirstOrCreate(&friendship)
+	}
 }

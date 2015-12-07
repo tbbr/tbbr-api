@@ -30,6 +30,8 @@ func TokenOAuthGrant(c *gin.Context) {
 		AvatarURL: userInfo.AvatarURL,
 	}).FirstOrCreate(&user)
 
+	auth.UpdateFacebookUserFriends(userInfo.AccessToken, user)
+
 	token := models.Token{
 		Category: "oAuth",
 		UserID:   user.ID,
