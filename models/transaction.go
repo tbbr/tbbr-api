@@ -57,6 +57,10 @@ func (t Transaction) Validate() (bool, appError.Err) {
 	return true, appError.Err{}
 }
 
+////////////////////////////////////////////////////
+///////////// API Interface Related ////////////////
+////////////////////////////////////////////////////
+
 // GetID returns a stringified version of an ID
 func (t Transaction) GetID() string {
 	return strconv.FormatUint(uint64(t.ID), 10)

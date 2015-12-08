@@ -2,10 +2,9 @@ package models
 
 import (
 	"errors"
+	"payup/config"
 	"strconv"
 	"time"
-
-	"payup/config"
 
 	"github.com/jinzhu/gorm"
 	"github.com/manyminds/api2go/jsonapi"
@@ -25,6 +24,29 @@ type Group struct {
 
 	UserIDs []uint `jsonapi:"-" sql:"-"`
 }
+
+// AfterCreate generates a HashID for a Group based on it's numeric ID field
+func (g *Group) AfterCreate(db *gorm.DB) (err error) {
+	hd := hashids.NewData()
+	hd.Salt = config.HashID.Salt
+	hd.MinLength = config.HashID.MinLength
+	h := hashids.NewWithData(hd)
+
+	a := []int{0}
+	a[0] = int(g.ID)
+
+	// Encode
+	e, _ := h.Encode(a)
+	g.HashID = e
+
+	// Save
+	db.Save(&g)
+	return
+}
+
+////////////////////////////////////////////////////
+///////////// API Interface Related ////////////////
+////////////////////////////////////////////////////
 
 // GetID returns a stringified version of an ID
 func (g Group) GetID() string {
@@ -99,23 +121,4 @@ func (g Group) GetReferencedStructs() []jsonapi.MarshalIdentifier {
 	}
 
 	return result
-}
-
-// AfterCreate generates a HashID for a Group based on it's numeric ID field
-func (g *Group) AfterCreate(db *gorm.DB) (err error) {
-	hd := hashids.NewData()
-	hd.Salt = config.HashID.Salt
-	hd.MinLength = config.HashID.MinLength
-	h := hashids.NewWithData(hd)
-
-	a := []int{0}
-	a[0] = int(g.ID)
-
-	// Encode
-	e, _ := h.Encode(a)
-	g.HashID = e
-
-	// Save
-	db.Save(&g)
-	return
 }

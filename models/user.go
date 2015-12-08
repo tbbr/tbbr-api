@@ -22,6 +22,10 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
+////////////////////////////////////////////////////
+///////////// API Interface Related ////////////////
+////////////////////////////////////////////////////
+
 // GetID returns a stringified version of an ID
 func (u User) GetID() string {
 	return strconv.FormatUint(uint64(u.ID), 10)

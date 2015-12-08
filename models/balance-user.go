@@ -11,6 +11,10 @@ type BalanceUser struct {
 	GroupID       uint `jsonapi:"name=groupId"`
 }
 
+////////////////////////////////////////////////////
+///////////// API Interface Related ////////////////
+////////////////////////////////////////////////////
+
 // GetID returns a stringified version of an ID
 func (bu BalanceUser) GetID() string {
 	return strconv.FormatUint(uint64(bu.ID), 10)
