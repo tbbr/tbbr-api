@@ -80,6 +80,8 @@ func startGin() {
 		friendships := authorized.Group("/friendships")
 		{
 			friendships.GET("", controllers.FriendshipIndex)
+
+			friendships.GET("/:id", controllers.FriendshipShow)
 		}
 		groups := authorized.Group("/groups")
 		{
