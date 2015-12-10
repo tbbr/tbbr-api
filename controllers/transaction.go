@@ -16,15 +16,16 @@ import (
 // will always be scoped to the current user
 func TransactionIndex(c *gin.Context) {
 	relatedUserID := c.Query("relatedUserId")
-	groupID := c.Query("groupId")
+	relatedObjectID := c.Query("relatedObjectId")
+	relatedObjectType := c.Query("relatedObjectType")
 	curUserID := c.Keys["CurrentUserID"]
 
 	var transactions []models.Transaction
 
-	if relatedUserID != "" && groupID != "" {
+	if relatedUserID != "" && relatedObjectID != "" {
 		database.DBCon.
-			Where("related_user_id = ? AND creator_id = ? AND group_id = ?", relatedUserID, curUserID, groupID).
-			Or("related_user_id = ? AND creator_id = ? AND group_id = ?", curUserID, relatedUserID, groupID).
+			Where("related_user_id = ? AND creator_id = ? AND related_object_id = ? AND related_object_type = ?", relatedUserID, curUserID, relatedObjectID, relatedObjectType).
+			Or("related_user_id = ? AND creator_id = ? AND related_object_id = ? AND related_object_type = ?", curUserID, relatedUserID, relatedObjectID, relatedObjectType).
 			Find(&transactions)
 	} else {
 		database.DBCon.
@@ -56,7 +57,8 @@ func TransactionIndex(c *gin.Context) {
 // @parameters
 //		@requires	type
 //		@requires amount
-//		@requires group_id
+//		@requires related_object_id
+//		@requires related_object_type
 //		@requires related_user_id
 //		@optional memo
 // @returns the newly created transaction
