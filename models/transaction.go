@@ -11,17 +11,18 @@ import (
 
 // Transaction model
 type Transaction struct {
-	ID            uint `json:"id"`
-	Type          string
-	Amount        int
-	Memo          string
-	RelatedUserID uint `jsonapi:"name=relatedUserId"`
-	GroupID       uint `jsonapi:"name=groupId"`
-	BalanceID     uint `jsonapi:"name=balanceId"`
-	CreatorID     uint `jsonapi:"name=creatorId"`
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	DeletedAt     *time.Time `jsonapi:"-"`
+	ID                uint `json:"id"`
+	Type              string
+	Amount            int
+	Memo              string
+	RelatedUserID     uint   `jsonapi:"name=relatedUserId"`
+	RelatedObjectType string `jsonapi:"name=relatedObjectType"`
+	RelatedObjectID   uint   `jsonapi:"name=relatedObjectId"`
+	BalanceID         uint   `jsonapi:"name=balanceId"`
+	CreatorID         uint   `jsonapi:"name=creatorId"`
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	DeletedAt         *time.Time `jsonapi:"-"`
 
 	Creator     User `jsonapi:"-" sql:"-"`
 	RelatedUser User `jsonapi:"-" sql:"-"`
@@ -50,12 +51,28 @@ func (t Transaction) Validate() (bool, appError.Err) {
 
 	if t.RelatedUserID == 0 {
 		invalidID := appError.InvalidParams
-		invalidID.Detail = "The transaction relatedUserId cannot be 0"
+		invalidID.Detail = "The transaction relatedUserId cannot be 0 or empty"
 		return false, invalidID
+	}
+
+	if t.RelatedObjectID == 0 {
+		invalidID := appError.InvalidParams
+		invalidID.Detail = "The transaction relatedObjectID cannot be 0 or empty"
+		return false, invalidID
+	}
+
+	if t.RelatedObjectType != "Group" && t.RelatedObjectType != "Friendship" {
+		invalidType := appError.InvalidParams
+		invalidType.Detail = "The transaction must have a relatedObjectType"
+		return false, invalidType
 	}
 
 	return true, appError.Err{}
 }
+
+////////////////////////////////////////////////////
+///////////// API Interface Related ////////////////
+////////////////////////////////////////////////////
 
 // GetID returns a stringified version of an ID
 func (t Transaction) GetID() string {
@@ -125,8 +142,8 @@ func (t *Transaction) SetToOneReferenceID(name, ID string) error {
 	switch name {
 	case "related-user":
 		t.RelatedUserID = uint(temp)
-	case "group-id":
-		t.GroupID = uint(temp)
+	case "related-object-id":
+		t.RelatedObjectID = uint(temp)
 	case "balance-id":
 		t.BalanceID = uint(temp)
 	case "creator":

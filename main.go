@@ -77,6 +77,12 @@ func startGin() {
 
 	authorized := router.Group("api", OAuthMiddleware())
 	{
+		friendships := authorized.Group("/friendships")
+		{
+			friendships.GET("", controllers.FriendshipIndex)
+
+			friendships.GET("/:id", controllers.FriendshipShow)
+		}
 		groups := authorized.Group("/groups")
 		{
 			groups.GET("", controllers.GroupIndex)
@@ -86,15 +92,6 @@ func startGin() {
 			groups.PATCH("/:id", controllers.GroupUpdate)
 			groups.DELETE("/:id", controllers.GroupDelete)
 		}
-
-		users := authorized.Group("/users")
-		{
-			users.GET("", controllers.UserIndex)
-			users.GET("/:id", controllers.UserShow)
-			users.PATCH("/:id", controllers.UserUpdate)
-			users.DELETE("/:id", controllers.UserDelete)
-		}
-
 		transactions := authorized.Group("/transactions")
 		{
 			transactions.GET("", controllers.TransactionIndex)
@@ -106,6 +103,13 @@ func startGin() {
 		tokens := router.Group("api/tokens")
 		{
 			tokens.POST("/oauth/grant", controllers.TokenOAuthGrant)
+		}
+		users := authorized.Group("/users")
+		{
+			users.GET("", controllers.UserIndex)
+			users.GET("/:id", controllers.UserShow)
+			users.PATCH("/:id", controllers.UserUpdate)
+			users.DELETE("/:id", controllers.UserDelete)
 		}
 	}
 

@@ -22,12 +22,7 @@ type Token struct {
 	DeletedAt         *time.Time `json:"deletedAt"`
 }
 
-// GetID returns a stringified version of an ID
-func (t Token) GetID() string {
-	return strconv.FormatUint(uint64(t.ID), 10)
-}
-
-// BeforeCreate generates a access and refresh tokens
+// BeforeCreate generates access and refresh tokens
 // and expiry dates
 func (t *Token) BeforeCreate(db *gorm.DB) (err error) {
 	t.AccessToken = uuid.NewV4().String()
@@ -40,4 +35,13 @@ func (t *Token) BeforeCreate(db *gorm.DB) (err error) {
 // Expired function returns true if the AccessToken has expired, and false otherwise
 func (t Token) Expired() bool {
 	return time.Now().After(t.AuthExpiration)
+}
+
+////////////////////////////////////////////////////
+///////////// API Interface Related ////////////////
+////////////////////////////////////////////////////
+
+// GetID returns a stringified version of an ID
+func (t Token) GetID() string {
+	return strconv.FormatUint(uint64(t.ID), 10)
 }

@@ -9,6 +9,10 @@ type Balance struct {
 	PositiveUserID uint
 }
 
+////////////////////////////////////////////////////
+///////////// API Interface Related ////////////////
+////////////////////////////////////////////////////
+
 // GetID returns a stringified version of an ID
 func (b Balance) GetID() string {
 	return strconv.FormatUint(uint64(b.ID), 10)

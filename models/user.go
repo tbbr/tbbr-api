@@ -16,10 +16,15 @@ type User struct {
 	AvatarURL    string        `jsonapi:"name=avatarUrl"`
 	ExternalID   string        `jsonapi:"-"`
 	Groups       []Group       `gorm:"many2many:group_users;" jsonapi:"-"`
+	Friendships  []Friendship  `jsonapi:"-"`
 	BalanceUsers []BalanceUser `jsonapi:"-"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
+
+////////////////////////////////////////////////////
+///////////// API Interface Related ////////////////
+////////////////////////////////////////////////////
 
 // GetID returns a stringified version of an ID
 func (u User) GetID() string {
@@ -33,14 +38,10 @@ func (u User) GetReferences() []jsonapi.Reference {
 	// We'll need to fix this on the routeHandler level
 
 	return []jsonapi.Reference{
-		// {
-		// 	Type: "groups",
-		// 	Name: "groups",
-		// },
-		{
-			Type: "balanceUsers",
-			Name: "balanceUsers",
-		},
+	// {
+	// 	Type: "groups",
+	// 	Name: "groups",
+	// },
 	}
 }
 
@@ -54,13 +55,6 @@ func (u User) GetReferencedIDs() []jsonapi.ReferenceID {
 	// 		Name: "groups",
 	// 	})
 	// }
-	for _, balanceUser := range u.BalanceUsers {
-		result = append(result, jsonapi.ReferenceID{
-			ID:   balanceUser.GetID(),
-			Type: "balanceUsers",
-			Name: "balanceUsers",
-		})
-	}
 	return result
 }
 
@@ -70,9 +64,6 @@ func (u User) GetReferencedStructs() []jsonapi.MarshalIdentifier {
 	// for key := range u.Groups {
 	// 	result = append(result, u.Groups[key])
 	// }
-	for key := range u.BalanceUsers {
-		result = append(result, u.BalanceUsers[key])
-	}
 
 	return result
 }

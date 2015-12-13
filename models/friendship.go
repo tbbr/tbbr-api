@@ -2,17 +2,21 @@ package models
 
 import (
 	"errors"
+	"payup/config"
 	"strconv"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/manyminds/api2go/jsonapi"
+	"github.com/speps/go-hashids"
 )
 
 // Friendship model
 type Friendship struct {
-	ID        uint `json:"id"`
-	UserID    uint `jsonapi:"name=userId"`
-	FriendID  uint `jsonapi:"name=friendId"`
+	ID        uint   `json:"id"`
+	UserID    uint   `jsonapi:"name=userId"`
+	FriendID  uint   `jsonapi:"name=friendId"`
+	HashID    string `jsonapi:"name=hashId"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time `jsonapi:"-"`
@@ -20,6 +24,29 @@ type Friendship struct {
 	User   User `jsonapi:"-" sql:"-"`
 	Friend User `jsonapi:"-" sql:"-"`
 }
+
+// AfterCreate generates a HashID for a Friendship based on it's numeric ID field
+func (f *Friendship) AfterCreate(db *gorm.DB) (err error) {
+	hd := hashids.NewData()
+	hd.Salt = config.HashID.Salt
+	hd.MinLength = config.HashID.MinLength
+	h := hashids.NewWithData(hd)
+
+	a := []int{0}
+	a[0] = int(f.ID)
+
+	// Encode
+	e, _ := h.Encode(a)
+	f.HashID = e
+
+	// Save
+	db.Save(&f)
+	return
+}
+
+////////////////////////////////////////////////////
+///////////// API Interface Related ////////////////
+////////////////////////////////////////////////////
 
 // GetID returns a stringified version of an ID
 func (f Friendship) GetID() string {
