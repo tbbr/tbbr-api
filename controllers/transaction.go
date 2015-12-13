@@ -26,6 +26,7 @@ func TransactionIndex(c *gin.Context) {
 		database.DBCon.
 			Where("related_user_id = ? AND creator_id = ? AND related_object_id = ? AND related_object_type = ?", relatedUserID, curUserID, relatedObjectID, relatedObjectType).
 			Or("related_user_id = ? AND creator_id = ? AND related_object_id = ? AND related_object_type = ?", curUserID, relatedUserID, relatedObjectID, relatedObjectType).
+			Order("created_at desc").
 			Find(&transactions)
 	} else {
 		database.DBCon.
