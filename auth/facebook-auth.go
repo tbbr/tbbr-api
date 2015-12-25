@@ -3,7 +3,6 @@ package auth
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -101,8 +100,6 @@ func UpdateFacebookUserFriends(fbAccessToken string, user models.User) {
 	json.Unmarshal(body, &v)
 	var friends []interface{}
 	friends = v["data"].([]interface{})
-
-	fmt.Print(friends)
 
 	// TODO: Optimize this, it kinda sucks.
 	for _, friend := range friends {
