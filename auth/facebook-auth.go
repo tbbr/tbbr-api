@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -85,7 +86,7 @@ func GetFacebookUserInfo(authCode string, referrer string) (FacebookUserInfo, er
 
 }
 
-// UpdateFacebookUserFriends takes an authCode and a already created user, and
+// UpdateFacebookUserFriends takes an authCode and an already created user, and
 // finds all their facebook friends and adds them into the the database.
 func UpdateFacebookUserFriends(fbAccessToken string, user models.User) {
 	s := url.Values{}
@@ -101,15 +102,18 @@ func UpdateFacebookUserFriends(fbAccessToken string, user models.User) {
 	var friends []interface{}
 	friends = v["data"].([]interface{})
 
+	fmt.Print(friends)
+
 	// TODO: Optimize this, it kinda sucks.
 	for _, friend := range friends {
 		friendExtID := friend.(map[string]interface{})["id"].(string)
 		var friendDB models.User
 		var friendship models.Friendship
-		database.DBCon.Where("external_id = ?", friendExtID).First(&friendDB)
-		database.DBCon.Where(models.Friendship{
-			UserID:   user.ID,
-			FriendID: friendDB.ID,
-		}).FirstOrCreate(&friendship)
+		if !database.DBCon.Where("external_id = ?", friendExtID).First(&friendDB).RecordNotFound() {
+			database.DBCon.Where(models.Friendship{
+				UserID:   user.ID,
+				FriendID: friendDB.ID,
+			}).FirstOrCreate(&friendship)
+		}
 	}
 }

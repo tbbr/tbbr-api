@@ -13,16 +13,36 @@ import (
 
 // Friendship model
 type Friendship struct {
-	ID        uint   `json:"id"`
-	UserID    uint   `jsonapi:"name=userId"`
-	FriendID  uint   `jsonapi:"name=friendId"`
-	HashID    string `jsonapi:"name=hashId"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time `jsonapi:"-"`
+	ID               uint   `json:"id"`
+	UserID           uint   `jsonapi:"name=userId"`
+	FriendID         uint   `jsonapi:"name=friendId"`
+	FriendshipDataID uint   `jsonapi:"name=friendshipDataId"`
+	HashID           string `jsonapi:"name=hashId"`
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        *time.Time `jsonapi:"-"`
 
 	User   User `jsonapi:"-" sql:"-"`
 	Friend User `jsonapi:"-" sql:"-"`
+
+	Balance        uint `sql:"-"`
+	PositiveUserID uint `sql:"-"`
+}
+
+// BeforeCreate will Find or Create FriendshipData model
+func (f *Friendship) BeforeCreate(db *gorm.DB) (err error) {
+	// Try to find FriendshipData
+	var otherFriendship Friendship
+	if db.Where("user_id = ? AND friend_id = ?", f.FriendID, f.UserID).First(&otherFriendship).RecordNotFound() {
+		// Create FriendshipData
+		var fd FriendshipData
+		fd.Balance = 0
+		db.Create(&fd)
+		f.FriendshipDataID = fd.ID
+	} else {
+		f.FriendshipDataID = otherFriendship.FriendshipDataID
+	}
+	return
 }
 
 // AfterCreate generates a HashID for a Friendship based on it's numeric ID field
@@ -41,6 +61,7 @@ func (f *Friendship) AfterCreate(db *gorm.DB) (err error) {
 
 	// Save
 	db.Save(&f)
+
 	return
 }
 

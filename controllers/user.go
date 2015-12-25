@@ -30,7 +30,7 @@ func UserIndex(c *gin.Context) {
 // @returns a user struct
 func UserShow(c *gin.Context) {
 	var user models.User
-	database.DBCon.Preload("BalanceUsers").First(&user, c.Param("id"))
+	database.DBCon.First(&user, c.Param("id"))
 
 	data, err := jsonapi.MarshalToJSON(jsonapi.MarshalIncludedRelations(user))
 

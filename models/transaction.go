@@ -18,7 +18,6 @@ type Transaction struct {
 	RelatedUserID     uint   `jsonapi:"name=relatedUserId"`
 	RelatedObjectType string `jsonapi:"name=relatedObjectType"`
 	RelatedObjectID   uint   `jsonapi:"name=relatedObjectId"`
-	BalanceID         uint   `jsonapi:"name=balanceId"`
 	CreatorID         uint   `jsonapi:"name=creatorId"`
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
@@ -144,8 +143,6 @@ func (t *Transaction) SetToOneReferenceID(name, ID string) error {
 		t.RelatedUserID = uint(temp)
 	case "related-object-id":
 		t.RelatedObjectID = uint(temp)
-	case "balance-id":
-		t.BalanceID = uint(temp)
 	case "creator":
 		t.CreatorID = uint(temp)
 	}
