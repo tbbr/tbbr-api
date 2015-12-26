@@ -25,8 +25,7 @@ type Friendship struct {
 	User   User `jsonapi:"-" sql:"-"`
 	Friend User `jsonapi:"-" sql:"-"`
 
-	Balance        uint `sql:"-"`
-	PositiveUserID uint `sql:"-"`
+	Balance int `sql:"-"`
 }
 
 // BeforeCreate will Find or Create FriendshipData model
@@ -37,6 +36,7 @@ func (f *Friendship) BeforeCreate(db *gorm.DB) (err error) {
 		// Create FriendshipData
 		var fd FriendshipData
 		fd.Balance = 0
+		fd.PositiveUserID = f.UserID
 		db.Create(&fd)
 		f.FriendshipDataID = fd.ID
 	} else {

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/manyminds/api2go/jsonapi"
 )
 
@@ -25,6 +26,95 @@ type Transaction struct {
 
 	Creator     User `jsonapi:"-" sql:"-"`
 	RelatedUser User `jsonapi:"-" sql:"-"`
+}
+
+// BeforeUpdate ensures that friendship balance is kept in sync
+func (t *Transaction) BeforeUpdate(db *gorm.DB) (err error) {
+	if t.RelatedObjectType != "Friendship" {
+		return
+	}
+
+	var curTransaction Transaction
+
+	db.First(&curTransaction, t.ID)
+
+	ReverseTransaction(&curTransaction, db)
+	// Now the AfterSave callback will use the new updated transaction
+	// and update the balance accordingly
+	return
+}
+
+// AfterSave increments balance on FriendshipData
+func (t *Transaction) AfterSave(db *gorm.DB) (err error) {
+	if t.RelatedObjectType != "Friendship" {
+		return
+	}
+	// Transaction is related to a Friendship
+	var fd FriendshipData
+	db.First(&fd, t.RelatedObjectID)
+
+	switch {
+	case fd.PositiveUserID == t.CreatorID && t.Type == "Borrow":
+		fallthrough
+	case fd.PositiveUserID == t.RelatedUserID && t.Type == "Lend":
+		fd.Balance -= t.Amount
+	case fd.PositiveUserID == t.CreatorID && t.Type == "Lend":
+		fallthrough
+	case fd.PositiveUserID == t.RelatedUserID && t.Type == "Borrow":
+		fd.Balance += t.Amount
+	}
+
+	if fd.Balance < 0 && fd.PositiveUserID == t.CreatorID {
+		fd.Balance = -fd.Balance
+		fd.PositiveUserID = t.RelatedUserID
+	} else if fd.Balance < 0 && fd.PositiveUserID == t.RelatedUserID {
+		fd.Balance = -fd.Balance
+		fd.PositiveUserID = t.CreatorID
+	}
+
+	db.Save(&fd)
+
+	return
+}
+
+// AfterDelete ensures that friendship balance is reversed (as if this transaction never occurred)
+func (t *Transaction) AfterDelete(db *gorm.DB) (err error) {
+	if t.RelatedObjectType != "Friendship" {
+		return
+	}
+	ReverseTransaction(t, db)
+	return
+}
+
+// ReverseTransaction this function will take a transaction amount and Type
+// and users to reverse the transaction on the balance
+func ReverseTransaction(t *Transaction, db *gorm.DB) {
+	// Transaction is related to a Friendship
+	var fd FriendshipData
+	db.First(&fd, t.RelatedObjectID)
+
+	// Reverse the old transaction
+	switch {
+	case fd.PositiveUserID == t.CreatorID && t.Type == "Borrow":
+		fallthrough
+	case fd.PositiveUserID == t.RelatedUserID && t.Type == "Lend":
+		fd.Balance += t.Amount
+	case fd.PositiveUserID == t.CreatorID && t.Type == "Lend":
+		fallthrough
+	case fd.PositiveUserID == t.RelatedUserID && t.Type == "Borrow":
+		fd.Balance -= t.Amount
+	}
+
+	if fd.Balance < 0 && fd.PositiveUserID == t.CreatorID {
+		fd.Balance = -fd.Balance
+		fd.PositiveUserID = t.RelatedUserID
+	} else if fd.Balance < 0 && fd.PositiveUserID == t.RelatedUserID {
+		fd.Balance = -fd.Balance
+		fd.PositiveUserID = t.CreatorID
+	}
+
+	// Save the new FriendshipData
+	db.Save(&fd)
 }
 
 // Validate the transaction and return a boolean and appError

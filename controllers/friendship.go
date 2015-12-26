@@ -21,10 +21,19 @@ func FriendshipIndex(c *gin.Context) {
 
 	database.DBCon.Model(&curUser).Related(&friendships, "Friendships")
 
-	// Get user and friend
+	// Get user and friend and friendshipData
 	// TODO: n + 1 query problem here, so we'll figure this out later
 	for i := range friendships {
+		var fd models.FriendshipData
 		database.DBCon.First(&friendships[i].Friend, friendships[i].FriendID)
+		database.DBCon.First(&fd, friendships[i].FriendshipDataID)
+
+		if curUser.ID == fd.PositiveUserID {
+			friendships[i].Balance = fd.Balance
+		} else {
+			friendships[i].Balance = -fd.Balance
+		}
+
 		friendships[i].User = curUser
 	}
 
@@ -50,8 +59,17 @@ func FriendshipShow(c *gin.Context) {
 		return
 	}
 
+	var fd models.FriendshipData
+
 	database.DBCon.First(&friendship.User, friendship.UserID)
 	database.DBCon.First(&friendship.Friend, friendship.FriendID)
+	database.DBCon.First(&fd, friendship.FriendshipDataID)
+
+	if friendship.UserID == fd.PositiveUserID {
+		friendship.Balance = fd.Balance
+	} else {
+		friendship.Balance = -fd.Balance
+	}
 
 	data, err := jsonapi.MarshalToJSON(friendship)
 
