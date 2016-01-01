@@ -97,7 +97,7 @@ func ReverseTransaction(t *Transaction, db *gorm.DB) {
 
 // Validate the transaction and return a boolean and appError
 func (t Transaction) Validate() (bool, appError.Err) {
-	if t.Type != "Borrow" && t.Type != "Lend" {
+	if t.Type != "Bill" && t.Type != "Payment" {
 		invalidType := appError.InvalidParams
 		invalidType.Detail = "The transaction type is invalid"
 		return false, invalidType
