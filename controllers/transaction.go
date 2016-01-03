@@ -15,17 +15,16 @@ import (
 // TransactionIndex outputs a certain number of transactions
 // will always be scoped to the current user
 func TransactionIndex(c *gin.Context) {
-	relatedUserID := c.Query("relatedUserId")
 	relatedObjectID := c.Query("relatedObjectId")
 	relatedObjectType := c.Query("relatedObjectType")
 	curUserID := c.Keys["CurrentUserID"]
 
 	var transactions []models.Transaction
 
-	if relatedUserID != "" && relatedObjectID != "" {
+	if relatedObjectID != "" && relatedObjectType != "" {
 		database.DBCon.
-			Where("related_user_id = ? AND creator_id = ? AND related_object_id = ? AND related_object_type = ?", relatedUserID, curUserID, relatedObjectID, relatedObjectType).
-			Or("related_user_id = ? AND creator_id = ? AND related_object_id = ? AND related_object_type = ?", curUserID, relatedUserID, relatedObjectID, relatedObjectType).
+			Where("related_object_id = ? AND related_object_type = ?", relatedObjectID, relatedObjectType).
+			Or("related_object_id = ? AND related_object_type = ?", relatedObjectID, relatedObjectType).
 			Order("created_at desc").
 			Find(&transactions)
 	} else {
@@ -37,8 +36,9 @@ func TransactionIndex(c *gin.Context) {
 	// Get creator and relatedUser
 	// TODO: n + 1 query problem here, so we'll figure this out later
 	for i := range transactions {
+		database.DBCon.First(&transactions[i].Recipient, transactions[i].RecipientID)
+		database.DBCon.First(&transactions[i].Sender, transactions[i].SenderID)
 		database.DBCon.First(&transactions[i].Creator, transactions[i].CreatorID)
-		database.DBCon.First(&transactions[i].RelatedUser, transactions[i].RelatedUserID)
 	}
 
 	data, err := jsonapi.MarshalToJSON(transactions)
@@ -58,9 +58,10 @@ func TransactionIndex(c *gin.Context) {
 // @parameters
 //		@requires	type
 //		@requires amount
-//		@requires related_object_id
-//		@requires related_object_type
-//		@requires related_user_id
+//		@requires relatedObjectId
+//		@requires relatedObjectType
+//		@requires recipientId
+//		@requires senderid
 //		@optional memo
 // @returns the newly created transaction
 func TransactionCreate(c *gin.Context) {
@@ -93,7 +94,8 @@ func TransactionCreate(c *gin.Context) {
 
 	database.DBCon.Create(&t)
 
-	database.DBCon.First(&t.RelatedUser, t.RelatedUserID)
+	database.DBCon.First(&t.Recipient, t.RecipientID)
+	database.DBCon.First(&t.Sender, t.SenderID)
 	database.DBCon.First(&t.Creator, t.CreatorID)
 
 	data, err := jsonapi.MarshalToJSON(&t)
@@ -112,9 +114,9 @@ func TransactionCreate(c *gin.Context) {
 // @parameters
 //		@requires id
 //		@optional	type
+//		@optional recipientId
+//		@optional senderId
 //		@optional amount
-//		@optional group_id
-//		@optional related_user_id
 //		@optional memo
 // @returns the updated transaction
 func TransactionUpdate(c *gin.Context) {
@@ -151,6 +153,8 @@ func TransactionUpdate(c *gin.Context) {
 	t.Type = newT.Type
 	t.Amount = newT.Amount
 	t.Memo = newT.Memo
+	t.RecipientID = newT.RecipientID
+	t.SenderID = newT.SenderID
 
 	// Validate our new transaction
 	isValid, errApp := t.Validate()
@@ -163,7 +167,8 @@ func TransactionUpdate(c *gin.Context) {
 
 	database.DBCon.Save(&t)
 
-	database.DBCon.First(&t.RelatedUser, t.RelatedUserID)
+	database.DBCon.First(&t.Recipient, t.RecipientID)
+	database.DBCon.First(&t.Sender, t.SenderID)
 	database.DBCon.First(&t.Creator, t.CreatorID)
 
 	data, err := jsonapi.MarshalToJSON(&t)
@@ -175,7 +180,6 @@ func TransactionUpdate(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/vnd.api+json", data)
-
 }
 
 // TransactionDelete will delete an existing transaction

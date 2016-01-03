@@ -16,7 +16,8 @@ type Transaction struct {
 	Type              string
 	Amount            int
 	Memo              string
-	RelatedUserID     uint   `jsonapi:"name=relatedUserId"`
+	RecipientID       uint   `jsonapi:"name=recipientId"`
+	SenderID          uint   `jsonapi:"name=senderId"`
 	RelatedObjectType string `jsonapi:"name=relatedObjectType"`
 	RelatedObjectID   uint   `jsonapi:"name=relatedObjectId"`
 	CreatorID         uint   `jsonapi:"name=creatorId"`
@@ -24,8 +25,9 @@ type Transaction struct {
 	UpdatedAt         time.Time
 	DeletedAt         *time.Time `jsonapi:"-"`
 
-	Creator     User `jsonapi:"-" sql:"-"`
-	RelatedUser User `jsonapi:"-" sql:"-"`
+	Recipient User `jsonapi:"-" sql:"-"`
+	Sender    User `jsonapi:"-" sql:"-"`
+	Creator   User `jsonapi:"-" sql:"-"`
 }
 
 // BeforeUpdate ensures that friendship balance is kept in sync
@@ -54,22 +56,10 @@ func (t *Transaction) AfterSave(db *gorm.DB) (err error) {
 	db.First(&fd, t.RelatedObjectID)
 
 	switch {
-	case fd.PositiveUserID == t.CreatorID && t.Type == "Borrow":
-		fallthrough
-	case fd.PositiveUserID == t.RelatedUserID && t.Type == "Lend":
+	case fd.PositiveUserID == t.RecipientID:
 		fd.Balance -= t.Amount
-	case fd.PositiveUserID == t.CreatorID && t.Type == "Lend":
-		fallthrough
-	case fd.PositiveUserID == t.RelatedUserID && t.Type == "Borrow":
+	case fd.PositiveUserID == t.SenderID:
 		fd.Balance += t.Amount
-	}
-
-	if fd.Balance < 0 && fd.PositiveUserID == t.CreatorID {
-		fd.Balance = -fd.Balance
-		fd.PositiveUserID = t.RelatedUserID
-	} else if fd.Balance < 0 && fd.PositiveUserID == t.RelatedUserID {
-		fd.Balance = -fd.Balance
-		fd.PositiveUserID = t.CreatorID
 	}
 
 	db.Save(&fd)
@@ -95,22 +85,10 @@ func ReverseTransaction(t *Transaction, db *gorm.DB) {
 
 	// Reverse the old transaction
 	switch {
-	case fd.PositiveUserID == t.CreatorID && t.Type == "Borrow":
-		fallthrough
-	case fd.PositiveUserID == t.RelatedUserID && t.Type == "Lend":
+	case fd.PositiveUserID == t.RecipientID:
 		fd.Balance += t.Amount
-	case fd.PositiveUserID == t.CreatorID && t.Type == "Lend":
-		fallthrough
-	case fd.PositiveUserID == t.RelatedUserID && t.Type == "Borrow":
+	case fd.PositiveUserID == t.SenderID:
 		fd.Balance -= t.Amount
-	}
-
-	if fd.Balance < 0 && fd.PositiveUserID == t.CreatorID {
-		fd.Balance = -fd.Balance
-		fd.PositiveUserID = t.RelatedUserID
-	} else if fd.Balance < 0 && fd.PositiveUserID == t.RelatedUserID {
-		fd.Balance = -fd.Balance
-		fd.PositiveUserID = t.CreatorID
 	}
 
 	// Save the new FriendshipData
@@ -119,7 +97,7 @@ func ReverseTransaction(t *Transaction, db *gorm.DB) {
 
 // Validate the transaction and return a boolean and appError
 func (t Transaction) Validate() (bool, appError.Err) {
-	if t.Type != "Borrow" && t.Type != "Lend" {
+	if t.Type != "Bill" && t.Type != "Payback" {
 		invalidType := appError.InvalidParams
 		invalidType.Detail = "The transaction type is invalid"
 		return false, invalidType
@@ -138,9 +116,15 @@ func (t Transaction) Validate() (bool, appError.Err) {
 		return false, invalidMemo
 	}
 
-	if t.RelatedUserID == 0 {
+	if t.SenderID == 0 {
 		invalidID := appError.InvalidParams
-		invalidID.Detail = "The transaction relatedUserId cannot be 0 or empty"
+		invalidID.Detail = "The transaction senderId cannot be 0 or empty"
+		return false, invalidID
+	}
+
+	if t.RecipientID == 0 {
+		invalidID := appError.InvalidParams
+		invalidID.Detail = "The transaction recipientId cannot be 0 or empty"
 		return false, invalidID
 	}
 
@@ -152,7 +136,7 @@ func (t Transaction) Validate() (bool, appError.Err) {
 
 	if t.RelatedObjectType != "Group" && t.RelatedObjectType != "Friendship" {
 		invalidType := appError.InvalidParams
-		invalidType.Detail = "The transaction must have a relatedObjectType"
+		invalidType.Detail = "The transaction must have a valid relatedObjectType"
 		return false, invalidType
 	}
 
@@ -187,7 +171,11 @@ func (t Transaction) GetReferences() []jsonapi.Reference {
 		},
 		{
 			Type: "users",
-			Name: "related-user",
+			Name: "recipient",
+		},
+		{
+			Type: "users",
+			Name: "sender",
 		},
 	}
 }
@@ -203,9 +191,15 @@ func (t Transaction) GetReferencedIDs() []jsonapi.ReferenceID {
 	})
 
 	result = append(result, jsonapi.ReferenceID{
-		ID:   strconv.FormatUint(uint64(t.RelatedUserID), 10),
+		ID:   strconv.FormatUint(uint64(t.RecipientID), 10),
 		Type: "users",
-		Name: "related-user",
+		Name: "recipient",
+	})
+
+	result = append(result, jsonapi.ReferenceID{
+		ID:   strconv.FormatUint(uint64(t.SenderID), 10),
+		Type: "users",
+		Name: "sender",
 	})
 	return result
 }
@@ -214,8 +208,9 @@ func (t Transaction) GetReferencedIDs() []jsonapi.ReferenceID {
 func (t Transaction) GetReferencedStructs() []jsonapi.MarshalIdentifier {
 	result := []jsonapi.MarshalIdentifier{}
 
+	result = append(result, t.Recipient)
+	result = append(result, t.Sender)
 	result = append(result, t.Creator)
-	result = append(result, t.RelatedUser)
 
 	return result
 }
@@ -229,10 +224,10 @@ func (t *Transaction) SetToOneReferenceID(name, ID string) error {
 	}
 
 	switch name {
-	case "related-user":
-		t.RelatedUserID = uint(temp)
-	case "related-object-id":
-		t.RelatedObjectID = uint(temp)
+	case "recipient":
+		t.RecipientID = uint(temp)
+	case "sender":
+		t.SenderID = uint(temp)
 	case "creator":
 		t.CreatorID = uint(temp)
 	}
