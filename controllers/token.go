@@ -12,10 +12,23 @@ import (
 // TokenOAuthGrant grants an oAuth token and creates a user if not
 // created already
 func TokenOAuthGrant(c *gin.Context) {
-	userInfo, err := auth.GetFacebookUserInfo(c.PostForm("auth_code"), c.Request.Referer())
+	grantType := c.PostForm("grant_type")
+	accessToken := c.PostForm("access_token")
+	var err error
 
-	if err != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
+	if grantType == "facebook_auth_code" || accessToken == "" {
+		accessToken, err = auth.GetFacebookAccessToken(c.PostForm("auth_code"), c.Request.Referer())
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	userInfo, err2 := auth.GetFacebookUserInfo(accessToken)
+
+	if err2 != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err2.Error()})
+		return
 	}
 
 	// Find or create user
@@ -30,7 +43,7 @@ func TokenOAuthGrant(c *gin.Context) {
 		AvatarURL: userInfo.AvatarURL,
 	}).FirstOrCreate(&user)
 
-	auth.UpdateFacebookUserFriends(userInfo.AccessToken, user)
+	auth.UpdateFacebookUserFriends(accessToken, user)
 
 	token := models.Token{
 		Category: "oAuth",

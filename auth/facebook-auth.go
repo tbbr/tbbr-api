@@ -30,9 +30,8 @@ type data struct {
 	URL string `json:"url"`
 }
 
-// GetFacebookUserInfo validates an authCode that
-// is sent from a client
-func GetFacebookUserInfo(authCode string, referrer string) (FacebookUserInfo, error) {
+// GetFacebookAccessToken takes an authCode and a referrer to get the accessToken
+func GetFacebookAccessToken(authCode string, referrer string) (string, error) {
 	v := url.Values{}
 	v.Set("client_id", os.Getenv("FACEBOOK_KEY"))
 	v.Set("client_secret", os.Getenv("FACEBOOK_SECRET"))
@@ -46,43 +45,48 @@ func GetFacebookUserInfo(authCode string, referrer string) (FacebookUserInfo, er
 	defer resp.Body.Close()
 	contents, _ := ioutil.ReadAll(resp.Body)
 	m, _ := url.ParseQuery(string(contents))
-	fbAccessToken := m["access_token"][0]
 
-	if fbAccessToken != "" && resp.StatusCode == 200 {
-		s := url.Values{}
-		s.Set("fields", "id,name,email,gender")
-		s.Set("access_token", fbAccessToken)
-
-		resp2, _ := http.Get("https://graph.facebook.com/me?" + s.Encode())
-
-		defer resp2.Body.Close()
-		body, _ := ioutil.ReadAll(resp2.Body)
-
-		var userInfo FacebookUserInfo
-		json.Unmarshal(body, &userInfo)
-
-		// Get AvatarURL
-		picResp, _ := http.Get("https://graph.facebook.com/" + userInfo.UserID + "/picture?type=large&redirect=false")
-
-		defer picResp.Body.Close()
-		picBody, _ := ioutil.ReadAll(picResp.Body)
-
-		var fbPic facebookPicture
-		json.Unmarshal(picBody, &fbPic)
-
-		// Set userInfo AvatarURL
-		if fbPic.PicData.URL != "" {
-			userInfo.AvatarURL = fbPic.PicData.URL
-		}
-
-		// Attach accessToken
-		userInfo.AccessToken = fbAccessToken
-
-		return userInfo, nil
+	if resp.StatusCode != 200 || m["access_token"][0] == "" {
+		return "", errors.New("Failed to get AccessToken")
 	}
 
-	return FacebookUserInfo{}, errors.New("Failed to get access token")
+	return m["access_token"][0], nil
+}
 
+// GetFacebookUserInfo validates an authCode that
+// is sent from a client
+func GetFacebookUserInfo(accessToken string) (FacebookUserInfo, error) {
+	if accessToken == "" {
+		return FacebookUserInfo{}, errors.New("AccessToken is empty")
+	}
+
+	s := url.Values{}
+	s.Set("fields", "id,name,email,gender")
+	s.Set("access_token", accessToken)
+
+	resp, _ := http.Get("https://graph.facebook.com/me?" + s.Encode())
+
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	var userInfo FacebookUserInfo
+	json.Unmarshal(body, &userInfo)
+
+	// Get AvatarURL
+	picResp, _ := http.Get("https://graph.facebook.com/" + userInfo.UserID + "/picture?type=large&redirect=false")
+
+	defer picResp.Body.Close()
+	picBody, _ := ioutil.ReadAll(picResp.Body)
+
+	var fbPic facebookPicture
+	json.Unmarshal(picBody, &fbPic)
+
+	// Set userInfo AvatarURL
+	if fbPic.PicData.URL != "" {
+		userInfo.AvatarURL = fbPic.PicData.URL
+	}
+
+	return userInfo, nil
 }
 
 // UpdateFacebookUserFriends takes an authCode and an already created user, and
