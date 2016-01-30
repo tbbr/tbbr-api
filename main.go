@@ -97,8 +97,8 @@ func startGin() {
 		}
 	}
 
-	// Listen and serve on 0.0.0.0:8080
-	router.Run(":8080")
+	// Listen and serve on 0.0.0.0:8090
+	router.Run(":8090")
 }
 
 // Cors - Enables cors for the api
