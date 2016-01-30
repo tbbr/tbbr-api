@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"payup/app-error"
 	"payup/auth"
@@ -13,15 +12,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
-	"github.com/markbates/goth/providers/facebook"
 )
 
 func main() {
 	configRuntime()
 	bootstrap()
-	setupAuthProviders()
 	startGin()
 }
 
@@ -49,17 +44,6 @@ func bootstrap() {
 		fmt.Printf("Connection setup with database\n")
 		fmt.Printf("Pinging: %s \n", database.DBCon.DB().Ping())
 	}
-}
-
-func setupAuthProviders() {
-	goth.UseProviders(
-		facebook.New(os.Getenv("FACEBOOK_KEY"), os.Getenv("FACEBOOK_SECRET"), "http://localhost:8080/auth/facebook/callback"),
-	)
-
-	gothic.GetProviderName = func(req *http.Request) (string, error) {
-		return "facebook", nil
-	}
-
 }
 
 func startGin() {
