@@ -12,7 +12,7 @@ import (
 
 // Transaction model
 type Transaction struct {
-	ID                uint `json:"id"`
+	ID                uint `jsonapi:"-"`
 	Type              string
 	Amount            int
 	Memo              string

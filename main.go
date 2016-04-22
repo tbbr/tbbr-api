@@ -32,9 +32,9 @@ func bootstrap() {
 
 	database.DBCon, err = gorm.Open("postgres",
 		fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
-			os.Getenv("PAYUP_DB_USER"),
-			os.Getenv("PAYUP_DB_PASSWORD"),
-			os.Getenv("PAYUP_DB_NAME"),
+			os.Getenv("TBBR_DB_USER"),
+			os.Getenv("TBBR_DB_PASSWORD"),
+			os.Getenv("TBBR_DB_NAME"),
 		),
 	)
 

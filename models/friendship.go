@@ -13,7 +13,7 @@ import (
 
 // Friendship model
 type Friendship struct {
-	ID               uint   `json:"id"`
+	ID               uint   `jsonapi:"-"`
 	UserID           uint   `jsonapi:"name=userId"`
 	FriendID         uint   `jsonapi:"name=friendId"`
 	FriendshipDataID uint   `jsonapi:"name=friendshipDataId"`
