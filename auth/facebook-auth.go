@@ -18,16 +18,7 @@ type FacebookUserInfo struct {
 	Name        string `json:"name"`
 	Email       string `json:"email"`
 	Gender      string `json:"gender"`
-	AvatarURL   string
 	AccessToken string
-}
-
-type facebookPicture struct {
-	PicData data `json:"data"`
-}
-
-type data struct {
-	URL string `json:"url"`
 }
 
 // GetFacebookAccessToken takes an authCode and a referrer to get the accessToken
@@ -71,20 +62,6 @@ func GetFacebookUserInfo(accessToken string) (FacebookUserInfo, error) {
 
 	var userInfo FacebookUserInfo
 	json.Unmarshal(body, &userInfo)
-
-	// Get AvatarURL
-	picResp, _ := http.Get("https://graph.facebook.com/" + userInfo.UserID + "/picture?type=large&redirect=false")
-
-	defer picResp.Body.Close()
-	picBody, _ := ioutil.ReadAll(picResp.Body)
-
-	var fbPic facebookPicture
-	json.Unmarshal(picBody, &fbPic)
-
-	// Set userInfo AvatarURL
-	if fbPic.PicData.URL != "" {
-		userInfo.AvatarURL = fbPic.PicData.URL
-	}
 
 	return userInfo, nil
 }

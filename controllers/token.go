@@ -37,10 +37,9 @@ func TokenOAuthGrant(c *gin.Context) {
 	database.DBCon.Where(models.User{
 		ExternalID: userInfo.UserID,
 	}).Attrs(models.User{
-		Name:      userInfo.Name,
-		Email:     userInfo.Email,
-		Gender:    userInfo.Gender,
-		AvatarURL: userInfo.AvatarURL,
+		Name:   userInfo.Name,
+		Email:  userInfo.Email,
+		Gender: userInfo.Gender,
 	}).FirstOrCreate(&user)
 
 	auth.UpdateFacebookUserFriends(accessToken, user)

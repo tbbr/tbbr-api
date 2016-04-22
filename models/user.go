@@ -13,8 +13,7 @@ type User struct {
 	Name        string
 	Email       string
 	Gender      string
-	AvatarURL   string       `jsonapi:"name=avatarUrl"`
-	ExternalID  string       `jsonapi:"-"`
+	ExternalID  string       `jsonapi:"name=externalId"`
 	Groups      []Group      `gorm:"many2many:group_users;" jsonapi:"-"`
 	Friendships []Friendship `jsonapi:"-"`
 	CreatedAt   time.Time
