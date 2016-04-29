@@ -9,10 +9,9 @@ import (
 // VerifyToken function is a route handler
 // that is used to verify the token given to from Facebook
 func VerifyToken(c *gin.Context) {
-	if c.Query("verify_token") == config.FBMessengerBotToken {
-		c.JSON(200, gin.H{
-			"challenge": c.Query("challenge"),
-		})
+	print(c.Query("hub"))
+	if c.Query("hub.verify_token") == config.FBMessengerBotToken {
+		c.String(200, c.Query("hub.challenge"))
 	}
 }
 
