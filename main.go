@@ -7,6 +7,7 @@ import (
 	"payup/auth"
 	"payup/controllers"
 	"payup/database"
+	"payup/fb-messenger-bot"
 	"runtime"
 
 	"github.com/gin-gonic/gin"
@@ -95,6 +96,12 @@ func startGin() {
 			users.PATCH("/:id", controllers.UserUpdate)
 			users.DELETE("/:id", controllers.UserDelete)
 		}
+	}
+
+	fbMessengerBotRoute := router.Group("fb-messenger-bot")
+	{
+		fbMessengerBotRoute.GET("", fbMessengerBot.VerifyToken)
+		fbMessengerBotRoute.POST("", fbMessengerBot.ReceiveMessage)
 	}
 
 	// Listen and serve on 0.0.0.0:8090
