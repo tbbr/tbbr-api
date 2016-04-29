@@ -131,11 +131,13 @@ func handleErrors() gin.HandlerFunc {
 			errors := []appError.Err{}
 
 			for _, e := range c.Errors {
-				err := e.Meta.(appError.Err)
-				errors = append(errors, err)
+				if e.Meta != nil {
+					err := e.Meta.(appError.Err)
+					errors = append(errors, err)
+				}
 			}
 			// Use Status of first error
-			c.JSON(errors[0].Status, gin.H{"errors": errors})
+			c.JSON(400, gin.H{"errors": errors})
 		}
 	}
 }
