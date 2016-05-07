@@ -23,7 +23,7 @@ func GroupIndex(c *gin.Context) {
 
 	database.DBCon.Model(&curUser).Preload("Users").Related(&groups, "Groups")
 
-	data, err := jsonapi.MarshalToJSON(groups)
+	data, err := jsonapi.Marshal(groups)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
@@ -48,7 +48,7 @@ func GroupShow(c *gin.Context) {
 
 	database.DBCon.Model(&group).Related(&users, "Users")
 	group.Users = users
-	data, err := jsonapi.MarshalToJSON(group)
+	data, err := jsonapi.Marshal(group)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
@@ -69,7 +69,7 @@ func GroupCreate(c *gin.Context) {
 		c.AbortWithError(http.StatusNotAcceptable, err)
 	}
 
-	err2 := jsonapi.UnmarshalFromJSON(buffer, &group)
+	err2 := jsonapi.Unmarshal(buffer, &group)
 
 	if err2 != nil {
 		parseFail := appError.JSONParseFailure
@@ -88,7 +88,7 @@ func GroupCreate(c *gin.Context) {
 
 	database.DBCon.Model(&group).Related(&group.Users, "Users")
 
-	data, err3 := jsonapi.MarshalToJSON(&group)
+	data, err3 := jsonapi.Marshal(&group)
 
 	if err3 != nil {
 		c.AbortWithError(http.StatusInternalServerError, err3).
@@ -110,7 +110,7 @@ func GroupUpdate(c *gin.Context) {
 		c.AbortWithError(http.StatusNotAcceptable, err)
 	}
 
-	err2 := jsonapi.UnmarshalFromJSON(buffer, &group)
+	err2 := jsonapi.Unmarshal(buffer, &group)
 
 	if err2 != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
@@ -131,7 +131,7 @@ func GroupUpdate(c *gin.Context) {
 	database.DBCon.First(&group, group.ID)
 	database.DBCon.Model(&group).Related(&group.Users, "Users")
 
-	data, err := jsonapi.MarshalToJSON(group)
+	data, err := jsonapi.Marshal(group)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
