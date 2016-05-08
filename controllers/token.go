@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"net/http"
-	"payup/auth"
-	"payup/database"
-	"payup/models"
+
+	"github.com/tbbr/tbbr-api/auth"
+	"github.com/tbbr/tbbr-api/database"
+	"github.com/tbbr/tbbr-api/models"
 
 	"github.com/gin-gonic/gin"
 )

@@ -2,12 +2,12 @@ package models
 
 import (
 	"errors"
-	"payup/app-error"
 	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/manyminds/api2go/jsonapi"
+	"github.com/tbbr/tbbr-api/app-error"
 )
 
 // Transaction model

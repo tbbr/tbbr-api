@@ -4,12 +4,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"payup/app-error"
-	"payup/database"
-	"payup/models"
+	"github.com/tbbr/tbbr-api/database"
+	"github.com/tbbr/tbbr-api/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/manyminds/api2go/jsonapi"
+	"github.com/tbbr/tbbr-api/app-error"
 )
 
 // TransactionIndex outputs a certain number of transactions

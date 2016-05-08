@@ -1,10 +1,11 @@
 package auth
 
 import (
-	"payup/app-error"
-	"payup/database"
-	"payup/models"
 	"strings"
+
+	"github.com/tbbr/tbbr-api/app-error"
+	"github.com/tbbr/tbbr-api/database"
+	"github.com/tbbr/tbbr-api/models"
 )
 
 // GetToken - get's a token with a specific authorization code

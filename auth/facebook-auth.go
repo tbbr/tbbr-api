@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"payup/database"
-	"payup/models"
+
+	"github.com/tbbr/tbbr-api/database"
+	"github.com/tbbr/tbbr-api/models"
 )
 
 // FacebookUserInfo represents the model of a user that is returned
