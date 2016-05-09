@@ -4,12 +4,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"payup/app-error"
-	"payup/database"
-	"payup/models"
+	"github.com/tbbr/tbbr-api/database"
+	"github.com/tbbr/tbbr-api/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/manyminds/api2go/jsonapi"
+	"github.com/tbbr/tbbr-api/app-error"
 )
 
 // GroupIndex When the group's index is routed to
@@ -84,7 +84,7 @@ func GroupCreate(c *gin.Context) {
 	// Add current user to the group
 	database.DBCon.
 		Exec("INSERT INTO group_users (group_id, user_id) VALUES (?, ?)",
-		group.ID, c.Keys["CurrentUserID"].(uint))
+			group.ID, c.Keys["CurrentUserID"].(uint))
 
 	database.DBCon.Model(&group).Related(&group.Users, "Users")
 
@@ -125,7 +125,7 @@ func GroupUpdate(c *gin.Context) {
 	for _, c := range group.UserIDs {
 		database.DBCon.
 			Exec("INSERT INTO group_users (group_id, user_id) VALUES (?, ?)",
-			group.ID, c)
+				group.ID, c)
 	}
 
 	database.DBCon.First(&group, group.ID)

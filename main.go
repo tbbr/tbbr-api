@@ -3,15 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
-	"payup/app-error"
-	"payup/auth"
-	"payup/controllers"
-	"payup/database"
 	"runtime"
+
+	"github.com/tbbr/tbbr-api/auth"
+	"github.com/tbbr/tbbr-api/controllers"
+	"github.com/tbbr/tbbr-api/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
+	"github.com/tbbr/tbbr-api/app-error"
 )
 
 func main() {

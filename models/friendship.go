@@ -2,9 +2,10 @@ package models
 
 import (
 	"errors"
-	"payup/config"
 	"strconv"
 	"time"
+
+	"github.com/tbbr/tbbr-api/config"
 
 	"github.com/jinzhu/gorm"
 	"github.com/manyminds/api2go/jsonapi"
