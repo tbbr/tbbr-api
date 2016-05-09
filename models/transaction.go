@@ -12,22 +12,21 @@ import (
 
 // Transaction model
 type Transaction struct {
-	ID                uint `jsonapi:"-"`
-	Type              string
-	Amount            int
-	Memo              string
-	RecipientID       uint   `jsonapi:"name=recipientId"`
-	SenderID          uint   `jsonapi:"name=senderId"`
-	RelatedObjectType string `jsonapi:"name=relatedObjectType"`
-	RelatedObjectID   uint   `jsonapi:"name=relatedObjectId"`
-	CreatorID         uint   `jsonapi:"name=creatorId"`
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
-	DeletedAt         *time.Time `jsonapi:"-"`
-
-	Recipient User `jsonapi:"-" sql:"-"`
-	Sender    User `jsonapi:"-" sql:"-"`
-	Creator   User `jsonapi:"-" sql:"-"`
+	ID                uint       `json:"-"`
+	Type              string     `json:"type"`
+	Amount            int        `json:"amount"`
+	Memo              string     `json:"memo"`
+	RecipientID       uint       `json:"recipientId"`
+	SenderID          uint       `json:"senderId"`
+	RelatedObjectType string     `json:"relatedObjectType"`
+	RelatedObjectID   uint       `json:"relatedObjectId"`
+	CreatorID         uint       `json:"creatorId"`
+	CreatedAt         time.Time  `json:"createdAt"`
+	UpdatedAt         time.Time  `json:"updatedAt"`
+	DeletedAt         *time.Time `json:"-"`
+	Recipient         User       `json:"-" sql:"-"`
+	Sender            User       `json:"-" sql:"-"`
+	Creator           User       `json:"-" sql:"-"`
 }
 
 // BeforeUpdate ensures that friendship balance is kept in sync
@@ -226,11 +225,14 @@ func (t *Transaction) SetToOneReferenceID(name, ID string) error {
 	switch name {
 	case "recipient":
 		t.RecipientID = uint(temp)
+		return nil
 	case "sender":
 		t.SenderID = uint(temp)
+		return nil
 	case "creator":
 		t.CreatorID = uint(temp)
+		return nil
 	}
 
-	return errors.New("There is no to-one relationship with the name " + name)
+	return errors.New("There is no to-one asdf relationship with the name " + name)
 }

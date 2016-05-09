@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/manyminds/api2go/jsonapi"
+	"strconv"
 )
 
 // UserIndex is used when the user's index is routed to
@@ -15,9 +16,10 @@ import (
 // @returns an array of users
 func UserIndex(c *gin.Context) {
 	var users []models.User
-	database.DBCon.Limit(c.Param("limit")).Find(&users)
+	number, err := strconv.Atoi(c.Param("limit"))
+	database.DBCon.Limit(number).Find(&users)
 
-	data, err := jsonapi.MarshalToJSON(users)
+	data, err := jsonapi.Marshal(users)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})
@@ -32,7 +34,7 @@ func UserShow(c *gin.Context) {
 	var user models.User
 	database.DBCon.First(&user, c.Param("id"))
 
-	data, err := jsonapi.MarshalToJSON(jsonapi.MarshalIncludedRelations(user))
+	data, err := jsonapi.Marshal(jsonapi.MarshalIncludedRelations(user))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't marshal to json"})

@@ -37,7 +37,7 @@ func FriendshipIndex(c *gin.Context) {
 		friendships[i].User = curUser
 	}
 
-	data, err := jsonapi.MarshalToJSON(friendships)
+	data, err := jsonapi.Marshal(friendships)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
@@ -71,7 +71,7 @@ func FriendshipShow(c *gin.Context) {
 		friendship.Balance = -fd.Balance
 	}
 
-	data, err := jsonapi.MarshalToJSON(friendship)
+	data, err := jsonapi.Marshal(friendship)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).

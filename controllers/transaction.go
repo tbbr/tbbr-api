@@ -41,7 +41,7 @@ func TransactionIndex(c *gin.Context) {
 		database.DBCon.First(&transactions[i].Creator, transactions[i].CreatorID)
 	}
 
-	data, err := jsonapi.MarshalToJSON(transactions)
+	data, err := jsonapi.Marshal(transactions)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
@@ -71,7 +71,7 @@ func TransactionCreate(c *gin.Context) {
 		c.AbortWithError(http.StatusNotAcceptable, err)
 	}
 
-	err2 := jsonapi.UnmarshalFromJSON(buffer, &t)
+	err2 := jsonapi.Unmarshal(buffer, &t)
 
 	if err2 != nil {
 		parseFail := appError.JSONParseFailure
@@ -98,7 +98,7 @@ func TransactionCreate(c *gin.Context) {
 	database.DBCon.First(&t.Sender, t.SenderID)
 	database.DBCon.First(&t.Creator, t.CreatorID)
 
-	data, err := jsonapi.MarshalToJSON(&t)
+	data, err := jsonapi.Marshal(&t)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
@@ -142,7 +142,7 @@ func TransactionUpdate(c *gin.Context) {
 		c.AbortWithError(http.StatusNotAcceptable, err)
 	}
 
-	err2 := jsonapi.UnmarshalFromJSON(buffer, &newT)
+	err2 := jsonapi.Unmarshal(buffer, &newT)
 
 	if err2 != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
@@ -171,7 +171,7 @@ func TransactionUpdate(c *gin.Context) {
 	database.DBCon.First(&t.Sender, t.SenderID)
 	database.DBCon.First(&t.Creator, t.CreatorID)
 
-	data, err := jsonapi.MarshalToJSON(&t)
+	data, err := jsonapi.Marshal(&t)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
