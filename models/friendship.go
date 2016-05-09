@@ -13,19 +13,17 @@ import (
 
 // Friendship model
 type Friendship struct {
-	ID               uint   `jsonapi:"-"`
-	UserID           uint   `jsonapi:"name=userId"`
-	FriendID         uint   `jsonapi:"name=friendId"`
-	FriendshipDataID uint   `jsonapi:"name=friendshipDataId"`
-	HashID           string `jsonapi:"name=hashId"`
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	DeletedAt        *time.Time `jsonapi:"-"`
-
-	User   User `jsonapi:"-" sql:"-"`
-	Friend User `jsonapi:"-" sql:"-"`
-
-	Balance int `sql:"-"`
+	ID               uint       `json:"-"`
+	UserID           uint       `json:"userId"`
+	FriendID         uint       `json:"friendId"`
+	FriendshipDataID uint       `json:"friendshipDataId"`
+	HashID           string     `json:"hashId"`
+	CreatedAt        time.Time  `json:"createdAt"`
+	UpdatedAt        time.Time  `json:"updatedAt"`
+	DeletedAt        *time.Time `json:"-"`
+	User             User       `json:"-" sql:"-"`
+	Friend           User       `json:"-" sql:"-"`
+	Balance          int        `json:"balance" sql:"-"`
 }
 
 // BeforeCreate will Find or Create FriendshipData model
@@ -116,7 +114,7 @@ func (f Friendship) GetReferencedIDs() []jsonapi.ReferenceID {
 	return result
 }
 
-// GetReferencedStructs to satisfy the jsonapi.MarhsalIncludedRelations interface
+// GetReferencedStructs to satisfy the jsonapi.MarshalIncludedRelations interface
 func (f Friendship) GetReferencedStructs() []jsonapi.MarshalIdentifier {
 	result := []jsonapi.MarshalIdentifier{}
 

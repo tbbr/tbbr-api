@@ -19,7 +19,7 @@ type Token struct {
 	UserID            uint       `json:"userId"`
 	CreatedAt         time.Time  `json:"createdAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`
-	DeletedAt         *time.Time `json:"deletedAt"`
+	DeletedAt         *time.Time `json:"-"`
 }
 
 // BeforeCreate generates access and refresh tokens

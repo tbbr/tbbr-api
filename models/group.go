@@ -13,16 +13,15 @@ import (
 
 // Group model that users wil use
 type Group struct {
-	ID           uint `jsonapi:"-"`
-	Name         string
-	Description  string
-	Users        []User        `gorm:"many2many:group_users;" jsonapi:"-"`
-	Transactions []Transaction `jsonapi:"-"`
-	HashID       string        `jsonapi:"name=hashId"`
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-
-	UserIDs []uint `jsonapi:"-" sql:"-"`
+	ID           uint          `json:"-"`
+	Name         string        `json:"name"`
+	Description  string        `json:"description"`
+	Users        []User        `json:"-" gorm:"many2many:group_users;"`
+	Transactions []Transaction `json:"-"`
+	HashID       string        `json:"hashId"`
+	CreatedAt    time.Time     `json:"createdAt"`
+	UpdatedAt    time.Time     `json:"updatedAt"`
+	UserIDs      []uint        `json:"-" sql:"-"`
 }
 
 // AfterCreate generates a HashID for a Group based on it's numeric ID field

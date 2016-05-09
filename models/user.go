@@ -9,15 +9,15 @@ import (
 
 // User model
 type User struct {
-	ID          uint `jsonapi:"-"`
-	Name        string
-	Email       string
-	Gender      string
-	ExternalID  string       `jsonapi:"name=externalId"`
-	Groups      []Group      `gorm:"many2many:group_users;" jsonapi:"-"`
-	Friendships []Friendship `jsonapi:"-"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          uint         `json:"-"`
+	Name        string       `json:"name"`
+	Email       string       `json:"email"`
+	Gender      string       `json:"gender"`
+	ExternalID  string       `json:"externalId"`
+	Groups      []Group      `json:"-" gorm:"many2many:group_users;"`
+	Friendships []Friendship `json:"-"`
+	CreatedAt   time.Time    `json:"createdAt"`
+	UpdatedAt   time.Time    `json:"updatedAt"`
 }
 
 ////////////////////////////////////////////////////
