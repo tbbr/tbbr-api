@@ -1,0 +1,14 @@
+package: github.com/tbbr/tbbr-api
+import:
+- package: github.com/gin-gonic/gin
+- package: github.com/jinzhu/gorm
+- package: github.com/lib/pq
+- package: github.com/manyminds/api2go
+  subpackages:
+  - jsonapi
+- package: github.com/mitchellh/goamz
+  subpackages:
+  - aws
+  - s3
+- package: github.com/satori/go.uuid
+- package: github.com/speps/go-hashids

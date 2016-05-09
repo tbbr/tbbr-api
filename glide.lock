@@ -1,0 +1,48 @@
+hash: 7cdca0cd4225e006f12874585e4ae70f126240f468c3cb1fe9199b40eab3a1b1
+updated: 2016-05-08T18:01:40.105069877-07:00
+imports:
+- name: github.com/gedex/inflector
+  version: 91797f1712fd58f224781be1080b8613d096187e
+- name: github.com/gin-gonic/gin
+  version: 542be2fe77724f800fcab7eb6c01a4e597fb8506
+  subpackages:
+  - binding
+  - render
+- name: github.com/golang/protobuf
+  version: 2402d76f3d41f928c7902a765dfc872356dd3aad
+  subpackages:
+  - proto
+- name: github.com/jinzhu/gorm
+  version: bf413d67d3a25d4eeddb28541283fa6434d1cdb5
+- name: github.com/jinzhu/inflection
+  version: 3272df6c21d04180007eb3349844c89a3856bc25
+- name: github.com/lib/pq
+  version: dd3290b2f71a8b30bee8e4e75a337a825263d26f
+  subpackages:
+  - oid
+- name: github.com/manucorporat/sse
+  version: ee05b128a739a0fb76c7ebd3ae4810c1de808d6d
+- name: github.com/manyminds/api2go
+  version: 0f0aba686fffe91897ee4b7e1d682efbfcbac7fd
+  subpackages:
+  - jsonapi
+- name: github.com/mitchellh/goamz
+  version: caaaea8b30ee15616494ee68abd5d8ebbbef05cf
+  subpackages:
+  - aws
+  - s3
+- name: github.com/satori/go.uuid
+  version: f9ab0dce87d815821e221626b772e3475a0d2749
+- name: github.com/speps/go-hashids
+  version: d1d57a886aa7e3ef6092b70ceab077e35ee8e0ce
+- name: github.com/vaughan0/go-ini
+  version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
+- name: golang.org/x/net
+  version: f315505cf3349909cdf013ea56690da34e96a451
+  subpackages:
+  - context
+- name: gopkg.in/go-playground/validator.v8
+  version: c193cecd124b5cc722d7ee5538e945bdb3348435
+- name: gopkg.in/yaml.v2
+  version: a83829b6f1293c91addabc89d0571c246397bbf4
+devImports: []
