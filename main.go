@@ -5,6 +5,8 @@ import (
 	"os"
 	"runtime"
 
+	_ "github.com/mattes/migrate/driver/postgres"
+	"github.com/mattes/migrate/migrate"
 	"github.com/tbbr/tbbr-api/auth"
 	"github.com/tbbr/tbbr-api/controllers"
 	"github.com/tbbr/tbbr-api/database"
@@ -17,6 +19,7 @@ import (
 
 func main() {
 	configRuntime()
+	migrateDB()
 	bootstrap()
 	startGin()
 }
@@ -24,7 +27,35 @@ func main() {
 func configRuntime() {
 	nuCPU := runtime.NumCPU()
 	runtime.GOMAXPROCS(nuCPU)
-	fmt.Printf("Running with %d CPUs\n", nuCPU)
+	fmt.Printf("TBBR-API - Running with %d CPUs\n", nuCPU)
+}
+
+func migrateDB() {
+	fmt.Println("TBBR-API - Running Migrations")
+
+	var dbURL string
+	if os.Getenv("TBBR_DB_PASSWORD") == "" {
+		dbURL = fmt.Sprintf("postgres://%s@localhost:5432/%s?sslmode=disable",
+			os.Getenv("TBBR_DB_USER"),
+			os.Getenv("TBBR_DB_NAME"),
+		)
+	} else {
+		dbURL = fmt.Sprintf("postgres://%s:%s@localhost:5432/%s?sslmode=disable",
+			os.Getenv("TBBR_DB_USER"),
+			os.Getenv("TBBR_DB_PASSWORD"),
+			os.Getenv("TBBR_DB_NAME"),
+		)
+	}
+
+	allErrors, ok := migrate.UpSync(dbURL, "./migrations")
+	if !ok {
+		fmt.Println("TBBR-API Migrations failed!")
+		fmt.Println(allErrors)
+		fmt.Println("TBBR-API exiting...")
+		os.Exit(1)
+	}
+
+	fmt.Println("TBBR-API - Migrations Finished!")
 }
 
 func bootstrap() {
@@ -40,10 +71,10 @@ func bootstrap() {
 	)
 
 	if err != nil {
-		fmt.Printf("Error occurred %s\n", err)
+		fmt.Printf("TBBR-API - Error occurred %s\n", err)
 	} else {
-		fmt.Printf("Connection setup with database\n")
-		fmt.Printf("Pinging: %s \n", database.DBCon.DB().Ping())
+		fmt.Printf("TBBR-API - Connection setup with database\n")
+		fmt.Printf("TBBR-API - Pinging: %s \n", database.DBCon.DB().Ping())
 	}
 }
 
