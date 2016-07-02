@@ -16,6 +16,7 @@ type Transaction struct {
 	Type              string     `json:"type"`
 	Amount            int        `json:"amount"`
 	Memo              string     `json:"memo"`
+	IsSettled         bool       `json:"isSettled"`
 	RecipientID       uint       `json:"recipientId"`
 	SenderID          uint       `json:"senderId"`
 	RelatedObjectType string     `json:"relatedObjectType"`
