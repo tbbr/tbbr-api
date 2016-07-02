@@ -1,6 +1,5 @@
-payup
+/tbbr-api
 /*.dump
-/payup.conf
 /deploy.sh
 /tbbr.conf
 /vendor
