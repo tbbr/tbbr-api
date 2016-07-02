@@ -12,3 +12,4 @@ import:
   - s3
 - package: github.com/satori/go.uuid
 - package: github.com/speps/go-hashids
+- package: github.com/mattes/migrate

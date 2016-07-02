@@ -1,5 +1,5 @@
-hash: 7cdca0cd4225e006f12874585e4ae70f126240f468c3cb1fe9199b40eab3a1b1
-updated: 2016-05-08T18:01:40.105069877-07:00
+hash: 1094e29da97ea538d86636c94fdeee7aa720d18ab79f27b17af63fb3559ed69e
+updated: 2016-05-11T21:36:15.341726248-07:00
 imports:
 - name: github.com/gedex/inflector
   version: 91797f1712fd58f224781be1080b8613d096187e
@@ -13,11 +13,11 @@ imports:
   subpackages:
   - proto
 - name: github.com/jinzhu/gorm
-  version: bf413d67d3a25d4eeddb28541283fa6434d1cdb5
+  version: 57c72125b3087e1ed02c16f23a1f381cde3aaf2c
 - name: github.com/jinzhu/inflection
   version: 3272df6c21d04180007eb3349844c89a3856bc25
 - name: github.com/lib/pq
-  version: dd3290b2f71a8b30bee8e4e75a337a825263d26f
+  version: ee1442bda7bd1b6a84e913bdb421cb1874ec629d
   subpackages:
   - oid
 - name: github.com/manucorporat/sse
@@ -26,6 +26,8 @@ imports:
   version: 0f0aba686fffe91897ee4b7e1d682efbfcbac7fd
   subpackages:
   - jsonapi
+- name: github.com/mattes/migrate
+  version: ce1b59bb819416ca67422929b1cb48bb342720b6
 - name: github.com/mitchellh/goamz
   version: caaaea8b30ee15616494ee68abd5d8ebbbef05cf
   subpackages:
