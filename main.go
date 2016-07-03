@@ -73,7 +73,7 @@ func bootstrap() {
 		fmt.Printf("TBBR-API - Error occurred %s\n", err)
 	} else {
 		fmt.Printf("TBBR-API - Connection setup with database\n")
-		fmt.Printf("TBBR-API - Pinging: %s \n", database.DBCon.DB().Ping())
+		fmt.Println("TBBR-API - Pinging open connections:", database.DBCon.DB().Stats().OpenConnections)
 	}
 }
 
