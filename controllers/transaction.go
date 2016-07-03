@@ -3,6 +3,7 @@ package controllers
 import (
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/tbbr/tbbr-api/database"
 	"github.com/tbbr/tbbr-api/models"
@@ -17,18 +18,25 @@ import (
 func TransactionIndex(c *gin.Context) {
 	relatedObjectID := c.Query("relatedObjectId")
 	relatedObjectType := c.Query("relatedObjectType")
+	isSettledQuery := c.Query("isSettled")
 	curUserID := c.Keys["CurrentUserID"]
 
 	var transactions []models.Transaction
 
+	query := database.DBCon
+
+	isSettled, err := strconv.ParseBool(isSettledQuery)
+	if isSettledQuery != "" && err == nil {
+		query = query.Where("is_settled = ?", isSettled)
+	}
+
 	if relatedObjectID != "" && relatedObjectType != "" {
-		database.DBCon.
+		query.
 			Where("related_object_id = ? AND related_object_type = ?", relatedObjectID, relatedObjectType).
-			Or("related_object_id = ? AND related_object_type = ?", relatedObjectID, relatedObjectType).
 			Order("created_at desc").
 			Find(&transactions)
 	} else {
-		database.DBCon.
+		query.
 			Where("creator_id = ?", curUserID).
 			Find(&transactions)
 	}
@@ -50,7 +58,6 @@ func TransactionIndex(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/vnd.api+json", data)
-
 }
 
 // TransactionCreate will create a transaction that occurs
