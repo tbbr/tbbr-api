@@ -13,7 +13,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	_ "github.com/lib/pq"
 	"github.com/tbbr/tbbr-api/app-error"
 )
 
