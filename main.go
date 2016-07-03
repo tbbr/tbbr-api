@@ -29,9 +29,7 @@ func configRuntime() {
 	fmt.Printf("TBBR-API - Running with %d CPUs\n", nuCPU)
 }
 
-func migrateDB() {
-	fmt.Println("TBBR-API - Running Migrations")
-
+func getDBUrl() string {
 	var dbURL string
 	if os.Getenv("TBBR_DB_PASSWORD") == "" {
 		dbURL = fmt.Sprintf("postgres://%s@localhost:5432/%s?sslmode=disable",
@@ -45,8 +43,13 @@ func migrateDB() {
 			os.Getenv("TBBR_DB_NAME"),
 		)
 	}
+	return dbURL
+}
 
-	allErrors, ok := migrate.UpSync(dbURL, "./migrations")
+func migrateDB() {
+	fmt.Println("TBBR-API - Running Migrations")
+
+	allErrors, ok := migrate.UpSync(getDBUrl(), "./migrations")
 	if !ok {
 		fmt.Println("TBBR-API Migrations failed!")
 		fmt.Println(allErrors)
@@ -61,13 +64,7 @@ func bootstrap() {
 
 	var err error
 
-	database.DBCon, err = gorm.Open("postgres",
-		fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
-			os.Getenv("TBBR_DB_USER"),
-			os.Getenv("TBBR_DB_PASSWORD"),
-			os.Getenv("TBBR_DB_NAME"),
-		),
-	)
+	database.DBCon, err = gorm.Open("postgres", getDBUrl())
 
 	if err != nil {
 		fmt.Printf("TBBR-API - Error occurred %s\n", err)
