@@ -19,6 +19,7 @@ func TransactionIndex(c *gin.Context) {
 	relatedObjectID := c.Query("relatedObjectId")
 	relatedObjectType := c.Query("relatedObjectType")
 	isSettledQuery := c.Query("isSettled")
+	statusQuery := c.Query("status")
 	curUserID := c.Keys["CurrentUserID"]
 
 	var transactions []models.Transaction
@@ -28,6 +29,11 @@ func TransactionIndex(c *gin.Context) {
 	isSettled, err := strconv.ParseBool(isSettledQuery)
 	if isSettledQuery != "" && err == nil {
 		query = query.Where("is_settled = ?", isSettled)
+	}
+
+	// TODO: Check that statusQuery is a valid status
+	if statusQuery != "" {
+		query = query.Where("status = ?", statusQuery)
 	}
 
 	if relatedObjectID != "" && relatedObjectType != "" {

@@ -14,6 +14,7 @@ import (
 type Transaction struct {
 	ID                uint       `json:"-"`
 	Type              string     `json:"type"`
+	Status            string     `json:"status"`
 	Amount            int        `json:"amount"`
 	Memo              string     `json:"memo"`
 	IsSettled         bool       `json:"isSettled"`
@@ -101,6 +102,12 @@ func (t Transaction) Validate() (bool, appError.Err) {
 		invalidType := appError.InvalidParams
 		invalidType.Detail = "The transaction type is invalid"
 		return false, invalidType
+	}
+
+	if t.Status != "Confirmed" && t.Status != "Pending" && t.Status != "Rejected" {
+		invalidStatus := appError.InvalidParams
+		invalidStatus.Detail = "The transaction status is invalid"
+		return false, invalidStatus
 	}
 
 	// Maximum amount of $10,000
