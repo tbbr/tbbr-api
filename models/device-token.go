@@ -8,13 +8,13 @@ import (
 
 // DeviceToken model
 type DeviceToken struct {
-	ID        uint       `json:"id"`
-	Token     string     `json:"token"`
-	UserID    uint       `json:"userId"`
-	Type      string     `json:"type"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt time.Time  `json:"updatedAt"`
-	DeletedAt *time.Time `json:"-"`
+	ID         uint       `json:"id"`
+	Token      string     `json:"token"`
+	UserID     uint       `json:"userId"`
+	DeviceType string     `json:"deviceType"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	UpdatedAt  time.Time  `json:"updatedAt"`
+	DeletedAt  *time.Time `json:"-"`
 }
 
 // TableName gives gorm information on the name of the table
@@ -24,10 +24,10 @@ func (dt DeviceToken) TableName() string {
 
 // Validate the DeviceToken and return a boolean and appError
 func (dt DeviceToken) Validate() (bool, appError.Err) {
-	if dt.Type != "Android" && dt.Type != "iOS" {
-		invalidType := appError.InvalidParams
-		invalidType.Detail = "The deviceToken type is invalid"
-		return false, invalidType
+	if dt.DeviceType != "Android" && dt.DeviceType != "iOS" {
+		invalidDeviceType := appError.InvalidParams
+		invalidDeviceType.Detail = "The deviceToken deviceType is invalid"
+		return false, invalidDeviceType
 	}
 
 	if dt.Token == "" {

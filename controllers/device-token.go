@@ -13,7 +13,7 @@ import (
 
 // DeviceTokenCreate will create a deviceToken for a specified user
 // @parameters
-//		@requires	type
+//		@requires	deviceType
 //		@requires token
 // @returns the newly created deviceToken
 func DeviceTokenCreate(c *gin.Context) {
