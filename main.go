@@ -123,6 +123,10 @@ func startGin() {
 			users.PATCH("/:id", controllers.UserUpdate)
 			users.DELETE("/:id", controllers.UserDelete)
 		}
+		deviceTokens := authorized.Group("/device-tokens")
+		{
+			deviceTokens.POST("", controllers.DeviceTokenCreate)
+		}
 	}
 
 	// Listen and serve on 0.0.0.0:8090
@@ -147,10 +151,8 @@ func Cors() gin.HandlerFunc {
 func handleErrors() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
-
 		if len(c.Errors) > 0 {
 			errors := []appError.Err{}
-
 			for _, e := range c.Errors {
 				err := e.Meta.(appError.Err)
 				errors = append(errors, err)
