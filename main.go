@@ -47,9 +47,9 @@ func getDBUrl() string {
 }
 
 func migrateDB() {
-	fmt.Println("TBBR-API - Running Migrations")
+	fmt.Println("TBBR-API - Running Migrations located in: " + os.Getenv("TBBR_MIGRATIONS_DIR"))
 
-	allErrors, ok := migrate.UpSync(getDBUrl(), "./migrations")
+	allErrors, ok := migrate.UpSync(getDBUrl(), os.Getenv("TBBR_MIGRATIONS_DIR"))
 	if !ok {
 		fmt.Println("TBBR-API Migrations failed!")
 		fmt.Println(allErrors)
