@@ -1,0 +1,65 @@
+package models
+
+import (
+	"payup/app-error"
+	"strconv"
+	"time"
+)
+
+// DeviceToken model
+type DeviceToken struct {
+	ID        uint       `json:"id"`
+	Token     string     `json:"token"`
+	UserID    uint       `json:"userId"`
+	Type      string     `json:"type"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+	DeletedAt *time.Time `json:"-"`
+}
+
+// TableName gives gorm information on the name of the table
+func (dt DeviceToken) TableName() string {
+	return "device_tokens"
+}
+
+// Validate the DeviceToken and return a boolean and appError
+func (dt DeviceToken) Validate() (bool, appError.Err) {
+	if dt.Type != "Android" && dt.Type != "iOS" {
+		invalidType := appError.InvalidParams
+		invalidType.Detail = "The deviceToken type is invalid"
+		return false, invalidType
+	}
+
+	if dt.Token == "" {
+		invalidToken := appError.InvalidParams
+		invalidToken.Detail = "The deviceToken field 'token' cannot be empty"
+		return false, invalidToken
+	}
+
+	if dt.UserID == 0 {
+		invalidUserID := appError.InvalidParams
+		invalidUserID.Detail = "The deviceToken userID cannot be 0 or empty"
+		return false, invalidUserID
+	}
+
+	return true, appError.Err{}
+}
+
+////////////////////////////////////////////////////
+///////////// API Interface Related ////////////////
+////////////////////////////////////////////////////
+
+// GetID returns a stringified version of an ID
+func (dt DeviceToken) GetID() string {
+	return strconv.FormatUint(uint64(dt.ID), 10)
+}
+
+// SetID to satisfy jsonapi.UnmarshalIdentifier interface
+func (dt *DeviceToken) SetID(id string) error {
+	deviceTokenID, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return err
+	}
+	dt.ID = uint(deviceTokenID)
+	return nil
+}
