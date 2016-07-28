@@ -1,7 +1,12 @@
 package models
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -36,11 +41,8 @@ func (t *Transaction) BeforeUpdate(db *gorm.DB) (err error) {
 	if t.RelatedObjectType != "Friendship" {
 		return
 	}
-
 	var curTransaction Transaction
-
 	db.First(&curTransaction, t.ID)
-
 	ReverseTransaction(&curTransaction, db)
 	// Now the AfterSave callback will use the new updated transaction
 	// and update the balance accordingly
@@ -65,6 +67,8 @@ func (t *Transaction) AfterSave(db *gorm.DB) (err error) {
 
 	db.Save(&fd)
 
+	t.sendNotifications(db)
+
 	return
 }
 
@@ -75,6 +79,64 @@ func (t *Transaction) AfterDelete(db *gorm.DB) (err error) {
 	}
 	ReverseTransaction(t, db)
 	return
+}
+
+// SendNotifications sends notifications to devices
+func (t *Transaction) sendNotifications(db *gorm.DB) {
+	// Get the creator of transaction
+	notifyUserID := t.SenderID
+	notifAction := "received"
+	if t.CreatorID == t.SenderID {
+		notifyUserID = t.RecipientID
+		notifAction = "sent"
+	}
+
+	var deviceToken DeviceToken
+
+	// If user doesn't have a device token, return immediately
+	if db.Where("user_id = ?", notifyUserID).First(&deviceToken).RecordNotFound() {
+		return
+	}
+
+	// Get the Creator of the transaction if we don't have them
+	if t.Creator.Name == "" {
+		db.First(&t.Creator, t.CreatorID)
+	}
+
+	// Create notification payload
+	client := &http.Client{}
+
+	notif := Notification{
+		Title: fmt.Sprintf("%s %s %s", t.Creator.Name, notifAction, t.GetFormattedAmount()),
+		Body:  t.Memo,
+	}
+
+	notifPayload := NotificationPayload{
+		To:           deviceToken.Token,
+		Priority:     "high",
+		Notification: notif,
+	}
+
+	data, err := json.Marshal(&notifPayload)
+	if err != nil {
+		fmt.Println("TBBR-API - failed to marshal: err", err)
+		return
+	}
+
+	fmt.Println(string(data))
+
+	req, err := http.NewRequest("POST", "https://fcm.googleapis.com/fcm/send", bytes.NewBuffer(data))
+	if err != nil {
+		fmt.Println("TBBR-API - Couldn't create req for FCM, err: ", err)
+	}
+	req.Header.Add("Authorization", "key="+os.Getenv("TBBR_FIREBASE_SERVER_KEY"))
+	req.Header.Add("Content-Type", "application/json")
+	fcmResp, fcmErr := client.Do(req)
+	if fcmErr != nil {
+		fmt.Println("TBBR-API - Firebase response failure err: ", fcmErr)
+	}
+
+	fmt.Println("TBBR-API - FCM Response Status ", fcmResp.Status)
 }
 
 // ReverseTransaction this function will take a transaction amount and Type
@@ -148,6 +210,11 @@ func (t Transaction) Validate() (bool, appError.Err) {
 	}
 
 	return true, appError.Err{}
+}
+
+func (t Transaction) GetFormattedAmount() string {
+	decimal := (float64(t.Amount) / 100)
+	return fmt.Sprintf("$%.2f", decimal)
 }
 
 ////////////////////////////////////////////////////
