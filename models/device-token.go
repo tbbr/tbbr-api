@@ -1,9 +1,10 @@
 package models
 
 import (
-	"payup/app-error"
 	"strconv"
 	"time"
+
+	"github.com/tbbr/tbbr-api/app-error"
 )
 
 // DeviceToken model
