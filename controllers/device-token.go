@@ -44,7 +44,16 @@ func DeviceTokenCreate(c *gin.Context) {
 		return
 	}
 
-	database.DBCon.Create(&dt)
+	var existingDeviceToken models.DeviceToken
+
+	// If deviceToken is not found, then create the token
+	// else update the existing device token with the new one
+	if database.DBCon.Where("user_id = ?", dt.UserID).First(&existingDeviceToken).RecordNotFound() {
+		database.DBCon.Create(&dt)
+	} else {
+		database.DBCon.Model(&existingDeviceToken).Update("token", dt.Token)
+		dt = existingDeviceToken
+	}
 
 	data, err := jsonapi.Marshal(&dt)
 
