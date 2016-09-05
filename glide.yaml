@@ -13,3 +13,7 @@ import:
 - package: github.com/satori/go.uuid
 - package: github.com/speps/go-hashids
 - package: github.com/mattes/migrate
+- package: github.com/stretchr/testify
+  subpackages:
+  - assert
+  - suite
