@@ -9,6 +9,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/manyminds/api2go/jsonapi"
 	"github.com/tbbr/tbbr-api/app-error"
+	"github.com/tbbr/tbbr-api/database"
 	"github.com/tbbr/tbbr-api/notification"
 )
 
@@ -80,11 +81,29 @@ func (t *Transaction) AfterDelete(db *gorm.DB) (err error) {
 
 // SendNotification sends notification to device
 func (t *Transaction) sendNotification() {
+	var deviceToken DeviceToken
 	notifyUserID := t.SenderID
 	if t.CreatorID == t.SenderID {
 		notifyUserID = t.RecipientID
 	}
-	notification.New(notifyUserID).CreateTransactionTemplate(t).Send()
+
+	// If user doesn't have a device token, return
+	if database.DBCon.Where("user_id = ?", notifyUserID).First(&deviceToken).RecordNotFound() {
+		return
+	}
+
+	if t.Sender.Name == "" {
+		database.DBCon.First(&t.Sender, t.SenderID)
+	}
+
+	if t.Recipient.Name == "" {
+		database.DBCon.First(&t.Recipient, t.RecipientID)
+	}
+
+	title := fmt.Sprintf("%s's Tab: %s +%s", t.Recipient.Name, t.Sender.Name, t.GetFormattedAmount())
+	body := t.Memo
+
+	notification.New(deviceToken.Token).SetDetails(title, body).Send()
 }
 
 // ReverseTransaction this function will take a transaction amount and Type

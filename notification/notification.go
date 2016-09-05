@@ -3,12 +3,10 @@ package notification
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
-
-	"github.com/tbbr/tbbr-api/database"
-	"github.com/tbbr/tbbr-api/models"
 )
 
 type Notification struct {
@@ -25,61 +23,39 @@ type NotificationDetails struct {
 }
 
 // New takes in a userID and returns a Notification
-func New(userID int64) *Notification {
-	var deviceToken models.DeviceToken
-	// If user doesn't have a device token, return nil
-	if database.DBCon.Where("user_id = ?", userID).First(&deviceToken).RecordNotFound() {
-		return nil
-	}
-
+func New(token string) *Notification {
 	var newNotification Notification
-	newNotification.To = deviceToken.Token
+	newNotification.To = token
 	newNotification.Priority = "Medium"
 	return &newNotification
 }
 
-// CreateTransactionTemplate operates on an already created Notification
-// it takes a Transaction and
-func (n *Notification) CreateTransactionTemplate(t *Transaction) *Notification {
-	if t.Sender.Name == "" {
-		database.DBCon.First(&t.Sender, t.SenderID)
-	}
-
-	if t.Recipient.Name == "" {
-		database.DBCon.First(&t.Recipient, t.RecipientID)
-	}
-
-	title := fmt.Sprintf("%s's Tab: %s +%s", t.Recipient.Name, t.Sender.Name, t.GetFormattedAmount())
-	body := t.Memo
-	n.SetDetails(title, body)
-}
-
+// SetDetails sets the title and body of the notification
 func (n *Notification) SetDetails(title string, body string) *Notification {
-	n.Notification.title = title
-	n.Notification.body = body
+	n.Notification.Title = title
+	n.Notification.Body = body
 	return n
 }
 
-func (n *Notification) Send() (http.ResponseWriter, error) {
+// Send method will send the notification through FCM and return the response
+func (n *Notification) Send() (*http.Response, error) {
 	// If notification title is missing, don't send notification
 	if n.Notification.Title == "" {
-		return
+		return nil, errors.New("Notification title is empty")
 	}
-
 	data, err := json.Marshal(&n)
 	if err != nil {
 		fmt.Println("NOTIFICATIONS - failed to marshal: err", err)
-		return
+		return nil, err
 	}
-
 	fmt.Println(string(data))
-
 	req, err := http.NewRequest("POST", "https://fcm.googleapis.com/fcm/send", bytes.NewBuffer(data))
 	if err != nil {
 		fmt.Println("NOTIFICATIONS - Couldn't create req for FCM, err: ", err)
 	}
 	req.Header.Add("Authorization", "key="+os.Getenv("TBBR_FIREBASE_SERVER_KEY"))
 	req.Header.Add("Content-Type", "application/json")
+	client := &http.Client{}
 	fcmResp, fcmErr := client.Do(req)
 	if fcmErr != nil {
 		fmt.Println("NOTIFICATIONS - Firebase response failure err: ", fcmErr)
