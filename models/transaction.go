@@ -64,10 +64,8 @@ func (t *Transaction) AfterSave(db *gorm.DB) (err error) {
 	}
 
 	db.Save(&fd)
-
 	t.sendNotification()
-
-	return
+	return nil
 }
 
 // AfterDelete ensures that friendship balance is reversed (as if this transaction never occurred)

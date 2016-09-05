@@ -24,9 +24,13 @@ type NotificationDetails struct {
 
 // New takes in a userID and returns a Notification
 func New(token string) *Notification {
+	if token == "" {
+		return nil
+	}
+
 	var newNotification Notification
 	newNotification.To = token
-	newNotification.Priority = "Medium"
+	newNotification.Priority = "high"
 	return &newNotification
 }
 
@@ -49,7 +53,7 @@ func (n *Notification) Send() (*http.Response, error) {
 		return nil, err
 	}
 	fmt.Println(string(data))
-	req, err := http.NewRequest("POST", "https://fcm.googleapis.com/fcm/send", bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", os.Getenv("TBBR_FIREBASE_SERVER_URL"), bytes.NewBuffer(data))
 	if err != nil {
 		fmt.Println("NOTIFICATIONS - Couldn't create req for FCM, err: ", err)
 	}
@@ -61,6 +65,5 @@ func (n *Notification) Send() (*http.Response, error) {
 		fmt.Println("NOTIFICATIONS - Firebase response failure err: ", fcmErr)
 	}
 	fmt.Println("NOTIFICATIONS - FCM Response Status ", fcmResp.Status)
-
 	return fcmResp, fcmErr
 }
