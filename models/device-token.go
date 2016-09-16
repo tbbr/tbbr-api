@@ -18,19 +18,6 @@ type DeviceToken struct {
 	DeletedAt  *time.Time `json:"-"`
 }
 
-type NotificationPayload struct {
-	To           string       `json:"to"`
-	Priority     string       `json:"priority"`
-	Notification Notification `json:"notification"`
-}
-
-type Notification struct {
-	Title string `json:"title"`
-	Body  string `json:"body"`
-	// Icon  string `json:"icon,omitempty"`
-	// Color string `json:"color,omitempty"`
-}
-
 // TableName gives gorm information on the name of the table
 func (dt DeviceToken) TableName() string {
 	return "device_tokens"

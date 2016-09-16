@@ -1,18 +1,16 @@
 package models
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/manyminds/api2go/jsonapi"
 	"github.com/tbbr/tbbr-api/app-error"
+	"github.com/tbbr/tbbr-api/database"
+	"github.com/tbbr/tbbr-api/notification"
 )
 
 // Transaction model
@@ -66,10 +64,8 @@ func (t *Transaction) AfterSave(db *gorm.DB) (err error) {
 	}
 
 	db.Save(&fd)
-
-	t.sendNotifications(db)
-
-	return
+	t.sendNotification()
+	return nil
 }
 
 // AfterDelete ensures that friendship balance is reversed (as if this transaction never occurred)
@@ -81,62 +77,31 @@ func (t *Transaction) AfterDelete(db *gorm.DB) (err error) {
 	return
 }
 
-// SendNotifications sends notifications to devices
-func (t *Transaction) sendNotifications(db *gorm.DB) {
-	// Get the creator of transaction
+// SendNotification sends notification to device
+func (t *Transaction) sendNotification() {
+	var deviceToken DeviceToken
 	notifyUserID := t.SenderID
-	notifAction := "received"
 	if t.CreatorID == t.SenderID {
 		notifyUserID = t.RecipientID
-		notifAction = "sent"
 	}
 
-	var deviceToken DeviceToken
-
-	// If user doesn't have a device token, return immediately
-	if db.Where("user_id = ?", notifyUserID).First(&deviceToken).RecordNotFound() {
+	// If user doesn't have a device token, return
+	if database.DBCon.Where("user_id = ?", notifyUserID).First(&deviceToken).RecordNotFound() {
 		return
 	}
 
-	// Get the Creator of the transaction if we don't have them
-	if t.Creator.Name == "" {
-		db.First(&t.Creator, t.CreatorID)
+	if t.Sender.Name == "" {
+		database.DBCon.First(&t.Sender, t.SenderID)
 	}
 
-	// Create notification payload
-	client := &http.Client{}
-
-	notif := Notification{
-		Title: fmt.Sprintf("%s %s %s", t.Creator.Name, notifAction, t.GetFormattedAmount()),
-		Body:  t.Memo,
+	if t.Recipient.Name == "" {
+		database.DBCon.First(&t.Recipient, t.RecipientID)
 	}
 
-	notifPayload := NotificationPayload{
-		To:           deviceToken.Token,
-		Priority:     "high",
-		Notification: notif,
-	}
+	title := fmt.Sprintf("%s's Tab: %s +%s", t.Recipient.Name, t.Sender.Name, t.GetFormattedAmount())
+	body := t.Memo
 
-	data, err := json.Marshal(&notifPayload)
-	if err != nil {
-		fmt.Println("TBBR-API - failed to marshal: err", err)
-		return
-	}
-
-	fmt.Println(string(data))
-
-	req, err := http.NewRequest("POST", "https://fcm.googleapis.com/fcm/send", bytes.NewBuffer(data))
-	if err != nil {
-		fmt.Println("TBBR-API - Couldn't create req for FCM, err: ", err)
-	}
-	req.Header.Add("Authorization", "key="+os.Getenv("TBBR_FIREBASE_SERVER_KEY"))
-	req.Header.Add("Content-Type", "application/json")
-	fcmResp, fcmErr := client.Do(req)
-	if fcmErr != nil {
-		fmt.Println("TBBR-API - Firebase response failure err: ", fcmErr)
-	}
-
-	fmt.Println("TBBR-API - FCM Response Status ", fcmResp.Status)
+	notification.New(deviceToken.Token).SetDetails(title, body).Send()
 }
 
 // ReverseTransaction this function will take a transaction amount and Type

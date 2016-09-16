@@ -1,10 +1,10 @@
-hash: 1094e29da97ea538d86636c94fdeee7aa720d18ab79f27b17af63fb3559ed69e
-updated: 2016-05-11T21:36:15.341726248-07:00
+hash: d34e73af6dcd4e08beb78fee7a450e5c3e629e68da1c8248073e6cc569aa9d7a
+updated: 2016-09-05T14:06:25.173291569-04:00
 imports:
 - name: github.com/gedex/inflector
   version: 91797f1712fd58f224781be1080b8613d096187e
 - name: github.com/gin-gonic/gin
-  version: 542be2fe77724f800fcab7eb6c01a4e597fb8506
+  version: f931d1ea80ae95a6fc739213cdd9399bd2967fb6
   subpackages:
   - binding
   - render
@@ -13,30 +13,42 @@ imports:
   subpackages:
   - proto
 - name: github.com/jinzhu/gorm
-  version: 57c72125b3087e1ed02c16f23a1f381cde3aaf2c
+  version: 446ce99a42ffe050b77bdd761271f97dd1e2b554
 - name: github.com/jinzhu/inflection
-  version: 3272df6c21d04180007eb3349844c89a3856bc25
+  version: 74387dc39a75e970e7a3ae6a3386b5bd2e5c5cff
 - name: github.com/lib/pq
-  version: ee1442bda7bd1b6a84e913bdb421cb1874ec629d
+  version: 50761b0867bd1d9d069276790bcd4a3bccf2324a
   subpackages:
   - oid
 - name: github.com/manucorporat/sse
   version: ee05b128a739a0fb76c7ebd3ae4810c1de808d6d
 - name: github.com/manyminds/api2go
-  version: 0f0aba686fffe91897ee4b7e1d682efbfcbac7fd
+  version: 878cb8bd760f2fe75e2cdab64836496b12f30f78
   subpackages:
   - jsonapi
 - name: github.com/mattes/migrate
   version: ce1b59bb819416ca67422929b1cb48bb342720b6
+  subpackages:
+  - driver/postgres
+  - migrate
+  - driver
+  - file
+  - migrate/direction
+  - pipe
 - name: github.com/mitchellh/goamz
   version: caaaea8b30ee15616494ee68abd5d8ebbbef05cf
   subpackages:
   - aws
   - s3
 - name: github.com/satori/go.uuid
-  version: f9ab0dce87d815821e221626b772e3475a0d2749
+  version: 0aa62d5ddceb50dbcb909d790b5345affd3669b6
 - name: github.com/speps/go-hashids
-  version: d1d57a886aa7e3ef6092b70ceab077e35ee8e0ce
+  version: 5527803966822002f346cda9e8852cde0139e84c
+- name: github.com/stretchr/testify
+  version: d77da356e56a7428ad25149ca77381849a6a5232
+  subpackages:
+  - assert
+  - suite
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
 - name: golang.org/x/net
@@ -46,5 +58,5 @@ imports:
 - name: gopkg.in/go-playground/validator.v8
   version: c193cecd124b5cc722d7ee5538e945bdb3348435
 - name: gopkg.in/yaml.v2
-  version: a83829b6f1293c91addabc89d0571c246397bbf4
+  version: e4d366fc3c7938e2958e662b4258c7a89e1f0e3e
 devImports: []
