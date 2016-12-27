@@ -137,10 +137,10 @@ func (t Transaction) Validate() (bool, appError.Err) {
 		return false, invalidStatus
 	}
 
-	// Maximum amount of $10,000
-	if t.Amount > 1000000 || t.Amount < 0 {
+	// Maximum amount of $100,000
+	if t.Amount > 10000000 || t.Amount < 0 {
 		invalidAmount := appError.InvalidParams
-		invalidAmount.Detail = "The transaction amount is out of range"
+		invalidAmount.Detail = "The transaction amount must be between $0 and $100,000"
 		return false, invalidAmount
 	}
 
