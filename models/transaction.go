@@ -274,5 +274,5 @@ func (t *Transaction) SetToOneReferenceID(name, ID string) error {
 		return nil
 	}
 
-	return errors.New("There is no to-one asdf relationship with the name " + name)
+	return errors.New("There is no to-one relationship with the name " + name)
 }
