@@ -162,6 +162,12 @@ func (t Transaction) Validate() (bool, appError.Err) {
 		return false, invalidID
 	}
 
+	if t.RecipientID == t.SenderID {
+		sameID := appError.InvalidParams
+		sameID.Detail = "The transaction recipient and sender cannot be the same"
+		return false, sameID
+	}
+
 	if t.RelatedObjectID == 0 {
 		invalidID := appError.InvalidParams
 		invalidID.Detail = "The transaction relatedObjectID cannot be 0 or empty"
@@ -177,6 +183,7 @@ func (t Transaction) Validate() (bool, appError.Err) {
 	return true, appError.Err{}
 }
 
+// GetFormattedAmount returns the amount in string format
 func (t Transaction) GetFormattedAmount() string {
 	decimal := (float64(t.Amount) / 100)
 	return fmt.Sprintf("$%.2f", decimal)
