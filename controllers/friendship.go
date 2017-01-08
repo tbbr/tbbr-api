@@ -19,7 +19,22 @@ func FriendshipIndex(c *gin.Context) {
 	var curUser models.User
 	database.DBCon.First(&curUser, c.Keys["CurrentUserID"])
 
-	database.DBCon.Model(&curUser).Related(&friendships, "Friendships")
+	// database.DBCon.Model(&curUser).Related(&friendships, "Friendships")
+
+	// The ORDER BY clause is a little complex, but the main idea is that we want to show
+	// all the friendships that the user owes money to first, then all the friendships
+	// that owe the user money, then finally zero balances
+	database.DBCon.Raw(`
+		SELECT f.* FROM friendships f
+		JOIN friendship_data fd 
+		ON fd.id = f.friendship_data_id
+		WHERE f.user_id = ?
+		ORDER BY (
+			CASE WHEN (fd.positive_user_id = f.friend_id AND fd.balance > 0) OR (fd.positive_user_id = f.user_id AND fd.balance < 0) then 1 
+			WHEN (fd.positive_user_id = f.user_id AND fd.balance > 0) OR (fd.positive_user_id = f.friend_id AND fd.balance < 0) then 2 
+			else 3 end
+		) ASC, ABS(fd.balance) DESC;
+	`, curUser.ID).Scan(&friendships)
 
 	// Get user and friend and friendshipData
 	// TODO: n + 1 query problem here, so we'll figure this out later
