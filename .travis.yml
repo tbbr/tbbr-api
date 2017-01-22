@@ -22,3 +22,6 @@ install: glide install
 before_script:
     - psql -c 'create database tbbr_test;' -U postgres
     - migrate -url postgres://postgres@localhost:5432/tbbr_test?sslmode=disable -path ./migrations up
+
+script:
+    - go test -v $(glide novendor)
