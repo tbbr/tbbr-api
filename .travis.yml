@@ -1,16 +1,11 @@
 language: go
 
 go:
-  - 1.7
+  - 1.7.4
   - tip
 
 services:
   - postgressql
-
-env: 
-    - TBBR_DB_NAME=tbbr_test
-    - TBBR_DB_USER=postgres
-    - TBBR_DB_PASSWORD=
 
 before_install:
     - mkdir $GOPATH/bin
