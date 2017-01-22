@@ -1,4 +1,5 @@
 # tbbr-api
+[![Build Status](https://travis-ci.org/tbbr/tbbr-api.svg?branch=master)](https://travis-ci.org/tbbr/tbbr-api)
 
 The api that serves data to the tbbr web application and the tbbr android application.
 

@@ -1,8 +1,22 @@
 language: go
 
 go:
-  - 1.7
+  - 1.7.4
   - tip
 
 services:
   - postgressql
+
+before_install:
+    - mkdir $GOPATH/bin
+    - curl https://glide.sh/get | sh
+    - go get github.com/mattes/migrate
+
+install: glide install
+
+before_script:
+    - psql -c 'create database tbbr_test;' -U postgres
+    - migrate -url postgres://postgres@localhost:5432/tbbr_test?sslmode=disable -path ./migrations up
+
+script:
+    - go test -v $(glide novendor)
