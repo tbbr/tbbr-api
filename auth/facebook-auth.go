@@ -22,6 +22,12 @@ type FacebookUserInfo struct {
 	AccessToken string
 }
 
+type facebookAccessTokenResp struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int    `json:"expires_in"`
+}
+
 // GetFacebookAccessToken takes an authCode and a referrer to get the accessToken
 func GetFacebookAccessToken(authCode string, referrer string) (string, error) {
 	v := url.Values{}
@@ -36,13 +42,14 @@ func GetFacebookAccessToken(authCode string, referrer string) (string, error) {
 
 	defer resp.Body.Close()
 	contents, _ := ioutil.ReadAll(resp.Body)
-	m, _ := url.ParseQuery(string(contents))
+	var accessTokenResp facebookAccessTokenResp
+	err := json.Unmarshal(contents, &accessTokenResp)
 
-	if resp.StatusCode != 200 || m["access_token"][0] == "" {
+	if resp.StatusCode != 200 || err != nil {
 		return "", errors.New("Failed to get AccessToken")
 	}
 
-	return m["access_token"][0], nil
+	return accessTokenResp.AccessToken, nil
 }
 
 // GetFacebookUserInfo validates an authCode that
