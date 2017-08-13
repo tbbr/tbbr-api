@@ -73,5 +73,5 @@ $ ./tbbr-api
 ## Testing
 
 ```
-$ go test
+$ go test $(go list ./... | grep -v /vendor/)
 ```
