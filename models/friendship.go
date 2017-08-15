@@ -5,11 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tbbr/tbbr-api/config"
-
 	"github.com/jinzhu/gorm"
 	"github.com/manyminds/api2go/jsonapi"
-	"github.com/speps/go-hashids"
+	"github.com/tbbr/tbbr-api/hashid"
 )
 
 // Friendship model
@@ -46,21 +44,8 @@ func (f *Friendship) BeforeCreate(db *gorm.DB) (err error) {
 
 // AfterCreate generates a HashID for a Friendship based on it's numeric ID field
 func (f *Friendship) AfterCreate(db *gorm.DB) (err error) {
-	hd := hashids.NewData()
-	hd.Salt = config.HashID.Salt
-	hd.MinLength = config.HashID.MinLength
-	h := hashids.NewWithData(hd)
-
-	a := []int{0}
-	a[0] = int(f.ID)
-
-	// Encode
-	e, _ := h.Encode(a)
-	f.HashID = e
-
-	// Save
+	f.HashID = hashid.Generate(f.ID)
 	db.Save(&f)
-
 	return
 }
 
