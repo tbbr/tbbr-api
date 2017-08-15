@@ -6,9 +6,10 @@ import (
 	"github.com/tbbr/tbbr-api/database"
 	"github.com/tbbr/tbbr-api/models"
 
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/manyminds/api2go/jsonapi"
-	"strconv"
 )
 
 // UserIndex is used when the user's index is routed to
@@ -17,7 +18,7 @@ import (
 // @returns an array of users
 func UserIndex(c *gin.Context) {
 	var users []models.User
-	number, err := strconv.Atoi(c.Param("limit"))
+	number, _ := strconv.Atoi(c.Param("limit"))
 	database.DBCon.Limit(number).Find(&users)
 
 	data, err := jsonapi.Marshal(users)
