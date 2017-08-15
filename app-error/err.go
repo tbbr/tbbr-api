@@ -67,7 +67,7 @@ var (
 	}
 	AccessTokenExpired = Err{
 		http.StatusUnauthorized,
-		"4001",
+		"4002",
 		"AccessTokenExpired",
 		"The access token has expired, you can ask for another one using your refresh token",
 	}
