@@ -3,9 +3,11 @@ package controllers
 import (
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/tbbr/tbbr-api/database"
 	"github.com/tbbr/tbbr-api/models"
+	"github.com/tbbr/tbbr-api/repositories"
 
 	"github.com/gin-gonic/gin"
 	"github.com/manyminds/api2go/jsonapi"
@@ -17,13 +19,11 @@ import (
 // come with some query parameters like limit and offset
 // @returns an array of group structs
 func GroupIndex(c *gin.Context) {
-	groups := []models.Group{}
+	gr := repositories.NewGroupRepository()
 	var curUser models.User
 	database.DBCon.First(&curUser, c.Keys["CurrentUserID"])
 
-	database.DBCon.Model(&curUser).Preload("Users").Related(&groups, "Groups")
-
-	data, err := jsonapi.Marshal(groups)
+	data, err := jsonapi.Marshal(gr.List(curUser, 10, 0))
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
@@ -37,19 +37,20 @@ func GroupIndex(c *gin.Context) {
 // GroupShow is used to show one specific group, returns a group struct
 // @returns a group struct
 func GroupShow(c *gin.Context) {
-	var group models.Group
-	var users []models.User
-
-	if database.DBCon.First(&group, c.Param("id")).RecordNotFound() {
-		c.AbortWithError(http.StatusNotFound, appError.RecordNotFound).
-			SetMeta(appError.RecordNotFound)
+	gr := repositories.NewGroupRepository()
+	groupID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err).
+			SetMeta(appError.InvalidParams)
+		return
+	}
+	group, appErr := gr.Get(uint(groupID))
+	if appErr != nil {
+		c.AbortWithError(http.StatusNotFound, *appErr).SetMeta(*appErr)
 		return
 	}
 
-	database.DBCon.Model(&group).Related(&users, "Users")
-	group.Users = users
 	data, err := jsonapi.Marshal(group)
-
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
 			SetMeta(appError.JSONParseFailure)
@@ -62,7 +63,7 @@ func GroupShow(c *gin.Context) {
 // GroupCreate is used to create one specific group, it'll come with some form data
 // @returns a group struct
 func GroupCreate(c *gin.Context) {
-
+	gr := repositories.NewGroupRepository()
 	var group models.Group
 	buffer, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
@@ -79,28 +80,29 @@ func GroupCreate(c *gin.Context) {
 		return
 	}
 
-	database.DBCon.Create(&group)
-
-	// Add current user to the group
-	database.DBCon.
-		Exec("INSERT INTO group_users (group_id, user_id) VALUES (?, ?)",
-			group.ID, c.Keys["CurrentUserID"].(uint))
-
-	database.DBCon.Model(&group).Related(&group.Users, "Users")
-
-	data, err3 := jsonapi.Marshal(&group)
-
+	createdGroup, err3 := gr.Create(group)
 	if err3 != nil {
-		c.AbortWithError(http.StatusInternalServerError, err3).
+		c.AbortWithError(http.StatusInternalServerError, err3)
+	}
+	gr.AddGroupMember(createdGroup.ID, c.Keys["CurrentUserID"].(uint))
+
+	groupWithMembers, appErr := gr.Get(createdGroup.ID)
+	if appErr != nil {
+		c.AbortWithError(http.StatusNotFound, *appErr).SetMeta(*appErr)
+		return
+	}
+
+	data, err4 := jsonapi.Marshal(groupWithMembers)
+	if err4 != nil {
+		c.AbortWithError(http.StatusInternalServerError, err4).
 			SetMeta(appError.JSONParseFailure)
 		return
 	}
 
 	c.Data(http.StatusCreated, "application/vnd.api+json", data)
-
 }
 
-// GroupUpdate is used to update a specific group, it'll also come with some form data'
+// GroupUpdate is used to update a specific group, it'll also come with some form data
 // @returns a group struct
 func GroupUpdate(c *gin.Context) {
 	var group models.Group
@@ -118,18 +120,18 @@ func GroupUpdate(c *gin.Context) {
 		return
 	}
 
-	// Little hack-ish
-	// Remove all current relations
-	database.DBCon.Exec("DELETE FROM group_users WHERE group_id = ?", group.ID)
-	// Add all the given relations
-	for _, c := range group.UserIDs {
-		database.DBCon.
-			Exec("INSERT INTO group_users (group_id, user_id) VALUES (?, ?)",
-				group.ID, c)
-	}
-
-	database.DBCon.First(&group, group.ID)
-	database.DBCon.Model(&group).Related(&group.Users, "Users")
+	// // Little hack-ish
+	// // Remove all current relations
+	// database.DBCon.Exec("DELETE FROM group_users WHERE group_id = ?", group.ID)
+	// // Add all the given relations
+	// for _, c := range group.UserIDs {
+	// 	database.DBCon.
+	// 		Exec("INSERT INTO group_users (group_id, user_id) VALUES (?, ?)",
+	// 			group.ID, c)
+	// }
+	//
+	// database.DBCon.First(&group, group.ID)
+	// database.DBCon.Model(&group).Related(&group.Users, "Users")
 
 	data, err := jsonapi.Marshal(group)
 
