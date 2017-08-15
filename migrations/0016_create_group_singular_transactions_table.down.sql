@@ -1,1 +1,0 @@
-DROP TABLE group_singular_transactions;
