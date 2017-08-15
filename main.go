@@ -158,6 +158,8 @@ func handleErrors() gin.HandlerFunc {
 				errors = append(errors, err)
 			}
 			// Use Status of first error
+			// TODO: Currently c.JSON doesn't set the content type properly
+			// a fix exists in v1.2 follow this thread: https://github.com/gin-gonic/gin/issues/762
 			c.JSON(errors[0].Status, gin.H{"errors": errors})
 		}
 	}
