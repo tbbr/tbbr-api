@@ -45,21 +45,25 @@ func (r *GroupRepository) Get(groupID uint) (*models.Group, *appError.Err) {
 }
 
 // Create takes a group struct and persists it into the DB
-func (r *GroupRepository) Create(g models.Group) (*models.Group, error) {
+func (r *GroupRepository) Create(g models.Group) (*models.Group, *appError.Err) {
 	if dbc := database.DBCon.Create(&g); dbc.Error != nil {
-		return nil, dbc.Error
+		dbError := appError.DatabaseError
+		dbError.Detail = dbc.Error.Error()
+		return nil, &dbError
 	}
 	return &g, nil
 }
 
 // Update takes a group struct and updates specific fields
-func (r *GroupRepository) Update(g models.Group) (*models.Group, error) {
+func (r *GroupRepository) Update(g models.Group) (*models.Group, *appError.Err) {
 	dbc := database.DBCon.Model(&g).Update(map[string]interface{}{
 		"name":        g.Name,
 		"description": g.Description,
 	})
 	if dbc.Error != nil {
-		return nil, dbc.Error
+		dbError := appError.DatabaseError
+		dbError.Detail = dbc.Error.Error()
+		return nil, &dbError
 	}
 	return &g, nil
 }
