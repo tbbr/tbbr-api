@@ -40,12 +40,14 @@ var (
 		"RecordValidationFailure",
 		"The validations on the record failed",
 	}
+
 	InvalidParams = Err{
 		http.StatusBadRequest,
 		"2000",
 		"InvalidParams",
 		"The request sent had invalid params",
 	}
+
 	JSONParseFailure = Err{
 		http.StatusInternalServerError,
 		"3000",
@@ -77,5 +79,12 @@ var (
 		"5000",
 		"InsufficientPermission",
 		"The current user does not have permission to perform this action",
+	}
+
+	DatabaseError = Err{
+		http.StatusInternalServerError,
+		"6000",
+		"DatabaseError",
+		"The database failed to perform a certain action",
 	}
 )
