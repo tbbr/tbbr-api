@@ -96,6 +96,14 @@ func startGin() {
 
 			friendships.GET("/:id", controllers.FriendshipShow)
 		}
+		transactions := authorized.Group("/transactions")
+		{
+			transactions.GET("", controllers.TransactionIndex)
+			transactions.POST("", controllers.TransactionCreate)
+
+			transactions.PATCH("/:id", controllers.TransactionUpdate)
+			transactions.DELETE("/:id", controllers.TransactionDelete)
+		}
 		groups := authorized.Group("/groups")
 		{
 			groups.GET("", controllers.GroupIndex)
@@ -106,13 +114,13 @@ func startGin() {
 			groups.PATCH("/:id", controllers.GroupUpdate)
 			groups.DELETE("/:id", controllers.GroupDelete)
 		}
-		transactions := authorized.Group("/transactions")
+		groupTransactions := authorized.Group("/group-transactions")
 		{
-			transactions.GET("", controllers.TransactionIndex)
-			transactions.POST("", controllers.TransactionCreate)
+			groupTransactions.GET("", controllers.GroupTransactionIndex)
+			groupTransactions.POST("", controllers.GroupTransactionCreate)
 
-			transactions.PATCH("/:id", controllers.TransactionUpdate)
-			transactions.DELETE("/:id", controllers.TransactionDelete)
+			// groupTransactions.PATCH("/:id", controllers.GroupTransactionUpdate)
+			// groupTransactions.DELETE("/:id", controllers.TransactionDelete)
 		}
 		tokens := router.Group("api/tokens")
 		{
