@@ -14,7 +14,7 @@ import (
 )
 
 // TransactionIndex outputs a certain number of transactions
-// will always be scoped to the current user
+// TODO: ensure current user is involved in transactions that are returned
 func TransactionIndex(c *gin.Context) {
 	relatedObjectID := c.Query("relatedObjectId")
 	relatedObjectType := c.Query("relatedObjectType")
