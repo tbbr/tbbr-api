@@ -23,7 +23,7 @@ func GroupIndex(c *gin.Context) {
 	var curUser models.User
 	database.DBCon.First(&curUser, c.Keys["CurrentUserID"])
 
-	data, err := jsonapi.Marshal(gr.List(curUser, 10, 0))
+	data, err := jsonapi.Marshal(gr.List(curUser, 30, 0))
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
@@ -80,21 +80,22 @@ func GroupCreate(c *gin.Context) {
 		return
 	}
 
-	createdGroup, err3 := gr.Create(group)
-	if err3 != nil {
-		c.AbortWithError(http.StatusInternalServerError, err3)
+	createdGroup, appErr := gr.Create(group)
+	if appErr != nil {
+		c.AbortWithError(http.StatusInternalServerError, *appErr).SetMeta(*appErr)
+		return
 	}
 	gr.AddGroupMember(createdGroup.ID, c.Keys["CurrentUserID"].(uint))
 
-	groupWithMembers, appErr := gr.Get(createdGroup.ID)
+	groupWithMembers, appErr2 := gr.Get(createdGroup.ID)
 	if appErr != nil {
-		c.AbortWithError(http.StatusNotFound, *appErr).SetMeta(*appErr)
+		c.AbortWithError(http.StatusNotFound, *appErr2).SetMeta(*appErr2)
 		return
 	}
 
-	data, err4 := jsonapi.Marshal(groupWithMembers)
-	if err4 != nil {
-		c.AbortWithError(http.StatusInternalServerError, err4).
+	data, err3 := jsonapi.Marshal(groupWithMembers)
+	if err3 != nil {
+		c.AbortWithError(http.StatusInternalServerError, err3).
 			SetMeta(appError.JSONParseFailure)
 		return
 	}
@@ -123,15 +124,15 @@ func GroupUpdate(c *gin.Context) {
 		return
 	}
 
-	_, err = gr.Update(group)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+	_, appErr := gr.Update(group)
+	if appErr != nil {
+		c.AbortWithError(http.StatusInternalServerError, *appErr).SetMeta(*appErr)
 		return
 	}
 
-	groupWithMembers, appErr := gr.Get(group.ID)
-	if appErr != nil {
-		c.AbortWithError(http.StatusNotFound, *appErr).SetMeta(*appErr)
+	groupWithMembers, appErr2 := gr.Get(group.ID)
+	if appErr2 != nil {
+		c.AbortWithError(http.StatusNotFound, *appErr2).SetMeta(*appErr2)
 		return
 	}
 	data, err := jsonapi.Marshal(groupWithMembers)
