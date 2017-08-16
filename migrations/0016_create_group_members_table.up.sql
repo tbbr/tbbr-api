@@ -9,7 +9,8 @@ CREATE TABLE group_members (
     deleted_at timestamp with time zone,
 
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (group_id) REFERENCES groups(id)
+    FOREIGN KEY (group_id) REFERENCES groups(id),
+    UNIQUE(group_id, user_id)
 );
 
 CREATE SEQUENCE group_members_id_seq

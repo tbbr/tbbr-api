@@ -52,6 +52,18 @@ func (r *GroupRepository) Create(g models.Group) (*models.Group, error) {
 	return &g, nil
 }
 
+// Update takes a group struct and updates specific fields
+func (r *GroupRepository) Update(g models.Group) (*models.Group, error) {
+	dbc := database.DBCon.Model(&g).Update(map[string]interface{}{
+		"name":        g.Name,
+		"description": g.Description,
+	})
+	if dbc.Error != nil {
+		return nil, dbc.Error
+	}
+	return &g, nil
+}
+
 // AddGroupMember takes a groupID and a userID and creates a groupMember
 func (r *GroupRepository) AddGroupMember(groupID uint, userID uint) error {
 	gmr := NewGroupMemberRepository()

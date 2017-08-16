@@ -102,14 +102,17 @@ func GroupCreate(c *gin.Context) {
 	c.Data(http.StatusCreated, "application/vnd.api+json", data)
 }
 
-// GroupUpdate is used to update a specific group, it'll also come with some form data
+// GroupUpdate is used to update a specific group
+// only updates native fields of the group
 // @returns a group struct
 func GroupUpdate(c *gin.Context) {
+	gr := repositories.NewGroupRepository()
 	var group models.Group
 	buffer, err := ioutil.ReadAll(c.Request.Body)
 
 	if err != nil {
 		c.AbortWithError(http.StatusNotAcceptable, err)
+		return
 	}
 
 	err2 := jsonapi.Unmarshal(buffer, &group)
@@ -120,20 +123,18 @@ func GroupUpdate(c *gin.Context) {
 		return
 	}
 
-	// // Little hack-ish
-	// // Remove all current relations
-	// database.DBCon.Exec("DELETE FROM group_users WHERE group_id = ?", group.ID)
-	// // Add all the given relations
-	// for _, c := range group.UserIDs {
-	// 	database.DBCon.
-	// 		Exec("INSERT INTO group_users (group_id, user_id) VALUES (?, ?)",
-	// 			group.ID, c)
-	// }
-	//
-	// database.DBCon.First(&group, group.ID)
-	// database.DBCon.Model(&group).Related(&group.Users, "Users")
+	_, err = gr.Update(group)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
-	data, err := jsonapi.Marshal(group)
+	groupWithMembers, appErr := gr.Get(group.ID)
+	if appErr != nil {
+		c.AbortWithError(http.StatusNotFound, *appErr).SetMeta(*appErr)
+		return
+	}
+	data, err := jsonapi.Marshal(groupWithMembers)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
@@ -142,6 +143,25 @@ func GroupUpdate(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/vnd.api+json", data)
+}
+
+// GroupJoin handles the request of allowing the current user to join the
+// specified group
+func GroupJoin(c *gin.Context) {
+	gr := repositories.NewGroupRepository()
+	groupID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err).
+			SetMeta(appError.InvalidParams)
+		return
+	}
+	err = gr.AddGroupMember(uint(groupID), c.Keys["CurrentUserID"].(uint))
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
 // GroupDelete is used to delete one specific group with a `id`
