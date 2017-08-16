@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"runtime"
 
@@ -101,6 +102,7 @@ func startGin() {
 			groups.POST("", controllers.GroupCreate)
 
 			groups.GET("/:id", controllers.GroupShow)
+			groups.POST("/:id/join", controllers.GroupJoin)
 			groups.PATCH("/:id", controllers.GroupUpdate)
 			groups.DELETE("/:id", controllers.GroupDelete)
 		}
@@ -154,13 +156,19 @@ func handleErrors() gin.HandlerFunc {
 		if len(c.Errors) > 0 {
 			errors := []appError.Err{}
 			for _, e := range c.Errors {
-				err := e.Meta.(appError.Err)
-				errors = append(errors, err)
+				switch err := e.Meta.(type) {
+				case appError.Err:
+					errors = append(errors, err)
+				}
 			}
 			// Use Status of first error
 			// TODO: Currently c.JSON doesn't set the content type properly
 			// a fix exists in v1.2 follow this thread: https://github.com/gin-gonic/gin/issues/762
-			c.JSON(errors[0].Status, gin.H{"errors": errors})
+			if len(errors) > 0 {
+				c.JSON(errors[0].Status, gin.H{"errors": errors})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"errors": c.Errors.Errors()})
+			}
 		}
 	}
 }
