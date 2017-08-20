@@ -18,14 +18,19 @@ func NewGroupRepository() *GroupRepository {
 
 // List is a function that returns a list of groups
 // @params
-//  user: Get the groups of this user
+//  userID: Get all the groups that this userID is a member of
 //  limit: return x amount of groups
 //  offset: skip the first x groups
 // @returns
 //  groups: a list of groups
-func (r *GroupRepository) List(user models.User, limit int, offset int) []models.Group {
+func (r *GroupRepository) List(userID uint, limit int, offset int) []models.Group {
 	var groups []models.Group
-	database.DBCon.Model(&user).Preload("Users").Related(&groups, "Groups")
+	var groupIDs []uint
+	database.DBCon.Model(&models.GroupMember{}).
+		Where("user_id = ?", userID).
+		Pluck("group_id", &groupIDs)
+
+	database.DBCon.Where("id in (?)", groupIDs).Preload("GroupMembers").Find(&groups)
 	return groups
 }
 

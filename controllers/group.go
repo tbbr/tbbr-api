@@ -23,7 +23,7 @@ func GroupIndex(c *gin.Context) {
 	var curUser models.User
 	database.DBCon.First(&curUser, c.Keys["CurrentUserID"])
 
-	data, err := jsonapi.Marshal(gr.List(curUser, 30, 0))
+	data, err := jsonapi.Marshal(gr.List(c.Keys["CurrentUserID"].(uint), 30, 0))
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err).
