@@ -20,7 +20,7 @@ type Group struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 
 	GroupMemberIDs []uint        `json:"-" sql:"-"`
-	GroupMembers   []GroupMember `json:"-" sql:"-"`
+	GroupMembers   []GroupMember `json:"-"`
 }
 
 // AfterCreate generates a HashID for a Group based on it's numeric ID field
