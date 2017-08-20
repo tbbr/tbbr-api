@@ -2,12 +2,15 @@ package models
 
 import (
 	"errors"
+	"math"
 	"strconv"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/lib/pq"
 	"github.com/manyminds/api2go/jsonapi"
 	"github.com/tbbr/tbbr-api/app-error"
+	"github.com/tbbr/tbbr-api/database"
 )
 
 // GroupTransaction is similar to a Transaction model except that
@@ -32,6 +35,136 @@ type GroupTransaction struct {
 	Recipients []User `json:"-" sql:"-"`
 	Group      Group  `json:"-" sql:"-"`
 	Creator    User   `json:"-" sql:"-"`
+}
+
+func gtGenerateSimpleSplits(amount uint, splitCount int64) pq.Int64Array {
+	amountLeft := int64(amount)
+	var splits pq.Int64Array
+	if splitCount == 0 {
+		return nil
+	}
+	for splitCount != 0 {
+		res := math.Ceil(float64(amountLeft) / float64(splitCount))
+		amountLeft -= int64(res)
+		splitCount--
+		splits = append(splits, int64(res))
+	}
+	return splits
+}
+
+func gtGenerateSplitAmounts(amount uint, splitParts pq.Int64Array) pq.Int64Array {
+	splitPartTotal := int64(0)
+	for i := range splitParts {
+		splitPartTotal += splitParts[i]
+	}
+	simpleSplits := gtGenerateSimpleSplits(amount, splitPartTotal)
+	consolidatedSplits := make(pq.Int64Array, len(splitParts))
+	cur := int64(0)
+
+	maxSplitPart := int64(0)
+	for i := range splitParts {
+		if splitParts[i] > maxSplitPart {
+			maxSplitPart = splitParts[i]
+		}
+	}
+	// Keep running until we've consumed all split parts
+	for cur < splitPartTotal {
+		for i := 0; i < len(consolidatedSplits); i++ {
+			if splitParts[i] > 0 {
+				consolidatedSplits[i] += simpleSplits[cur]
+				splitParts[i]--
+				cur++
+			}
+			// if we've consumed all the split parts, then exit
+			if cur == splitPartTotal {
+				break
+			}
+		}
+	}
+	return consolidatedSplits
+}
+
+func (gt *GroupTransaction) GetSenderSplitAmounts() pq.Int64Array {
+	if gt.SenderSplitType == "normal" {
+		return gt.SenderSplits
+	} else if gt.SenderSplitType == "splitPart" {
+		return gtGenerateSplitAmounts(gt.Amount, gt.SenderSplits)
+	}
+	return nil
+}
+
+func (gt *GroupTransaction) GetRecipientSplitAmounts() pq.Int64Array {
+	if gt.RecipientSplitType == "normal" {
+		return gt.RecipientSplits
+	} else if gt.RecipientSplitType == "splitPart" {
+		return gtGenerateSplitAmounts(gt.Amount, gt.RecipientSplits)
+	}
+	return nil
+}
+
+// BeforeUpdate ensures that friendship balance is kept in sync
+func (gt *GroupTransaction) BeforeUpdate(db *gorm.DB) (err error) {
+	var cur GroupTransaction
+	db.First(&cur, gt.ID)
+	ReverseGroupTransaction(&cur, db)
+	// Now the AfterSave callback will use the new updated transaction
+	// and update the balance accordingly
+	return
+}
+
+// AfterSave increments balance on FriendshipData
+func (gt *GroupTransaction) AfterSave(db *gorm.DB) (err error) {
+	// Transaction is related to a Friendship
+	var senderMembers []GroupMember
+	var recipientMembers []GroupMember
+
+	database.DBCon.Where("user_id in (?) AND group_id = ?", gt.SenderIDs, gt.GroupID).Find(&senderMembers)
+	database.DBCon.Where("user_id in (?) AND group_id = ?", gt.RecipientIDs, gt.GroupID).Find(&recipientMembers)
+
+	senderSplitAmounts := gt.GetSenderSplitAmounts()
+	recipientSplitAmounts := gt.GetRecipientSplitAmounts()
+
+	for i := range senderMembers {
+		senderMembers[i].AmountSent += uint(senderSplitAmounts[i])
+		database.DBCon.Model(&senderMembers[i]).Update("amount_sent", senderMembers[i].AmountSent)
+	}
+
+	for i := range recipientMembers {
+		recipientMembers[i].AmountReceived += uint(recipientSplitAmounts[i])
+		database.DBCon.Model(&recipientMembers[i]).Update("amount_received", recipientMembers[i].AmountReceived)
+	}
+	// gt.sendNotification()
+	return nil
+}
+
+// AfterDelete ensures that friendship balance is reversed (as if this transaction never occurred)
+func (gt *GroupTransaction) AfterDelete(db *gorm.DB) (err error) {
+	ReverseGroupTransaction(gt, db)
+	return nil
+}
+
+//
+// ReverseGroupTransaction will take a GroupTransaction amount
+// and reverse it
+func ReverseGroupTransaction(gt *GroupTransaction, db *gorm.DB) {
+	var senderMembers []GroupMember
+	var recipientMembers []GroupMember
+
+	database.DBCon.Where("user_id in (?) AND group_id = ?", gt.SenderIDs, gt.GroupID).Find(&senderMembers)
+	database.DBCon.Where("user_id in (?) AND group_id = ?", gt.RecipientIDs, gt.GroupID).Find(&recipientMembers)
+
+	senderSplitAmounts := gt.GetSenderSplitAmounts()
+	recipientSplitAmounts := gt.GetRecipientSplitAmounts()
+
+	for i := range senderMembers {
+		senderMembers[i].AmountSent -= uint(senderSplitAmounts[i])
+		database.DBCon.Model(senderMembers[i]).Update("amount_sent", senderMembers[i].AmountSent)
+	}
+
+	for i := range recipientMembers {
+		recipientMembers[i].AmountReceived -= uint(recipientSplitAmounts[i])
+		database.DBCon.Model(recipientMembers[i]).Update("amount_received", recipientMembers[i].AmountReceived)
+	}
 }
 
 // Validate the transaction and return a boolean and appError
@@ -79,15 +212,15 @@ func (gt GroupTransaction) Validate() (bool, appError.Err) {
 		return false, invalidID
 	}
 
-	if gt.SenderSplitType != "percent" && gt.SenderSplitType != "normal" {
+	if gt.SenderSplitType != "splitPart" && gt.SenderSplitType != "normal" {
 		invalidType := appError.InvalidParams
-		invalidType.Detail = "The groupTransaction senderSplitType is invalid, must be one of (percent, normal)"
+		invalidType.Detail = "The groupTransaction senderSplitType is invalid, must be one of (splitPart, normal)"
 		return false, invalidType
 	}
 
-	if gt.RecipientSplitType != "percent" && gt.RecipientSplitType != "normal" {
+	if gt.RecipientSplitType != "splitPart" && gt.RecipientSplitType != "normal" {
 		invalidType := appError.InvalidParams
-		invalidType.Detail = "The groupTransaction recipientSplitType is invalid, must be one of (percent, normal)"
+		invalidType.Detail = "The groupTransaction recipientSplitType is invalid, must be one of (splitPart, normal)"
 		return false, invalidType
 	}
 
