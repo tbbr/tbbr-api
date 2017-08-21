@@ -30,7 +30,9 @@ func (r *GroupRepository) List(userID uint, limit int, offset int) []models.Grou
 		Where("user_id = ?", userID).
 		Pluck("group_id", &groupIDs)
 
-	database.DBCon.Where("id in (?)", groupIDs).Preload("GroupMembers").Find(&groups)
+	database.DBCon.Where("id in (?)", groupIDs).
+		Preload("GroupMembers").
+		Find(&groups)
 	return groups
 }
 
