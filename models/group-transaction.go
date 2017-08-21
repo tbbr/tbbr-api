@@ -188,9 +188,9 @@ func (gt GroupTransaction) Validate() (bool, appError.Err) {
 		return false, invalidID
 	}
 
-	if len(gt.SenderIDs) == 0 {
+	if len(gt.SenderIDs) == 0 || len(gt.SenderIDs) > 1 {
 		invalidID := appError.InvalidParams
-		invalidID.Detail = "The groupTransaction must have at least one sender"
+		invalidID.Detail = "The groupTransaction must have exactly one sender"
 		return false, invalidID
 	}
 

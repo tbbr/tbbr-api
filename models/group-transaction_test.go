@@ -51,9 +51,9 @@ func (s *TransactionModelTestSuite) TestGetRecipientSplitAmounts_SimpleSplit() {
 	gt := GroupTransaction{
 		Amount:             1501,
 		Memo:               "test",
-		SenderIDs:          pq.Int64Array{1, 2},
+		SenderIDs:          pq.Int64Array{1},
 		RecipientIDs:       pq.Int64Array{5, 6, 7},
-		SenderSplits:       pq.Int64Array{1400, 101},
+		SenderSplits:       pq.Int64Array{1501},
 		RecipientSplits:    pq.Int64Array{1, 3, 2},
 		RecipientSplitType: "splitPart",
 		SenderSplitType:    "normal",
@@ -69,16 +69,16 @@ func (s *TransactionModelTestSuite) TestGetRecipientSplitAmounts_SimpleSplit() {
 	assert.Equal(s.T(), pq.Int64Array{251, 750, 500}, recipientSplits)
 
 	senderSplits := gt.GetSenderSplitAmounts()
-	assert.Equal(s.T(), pq.Int64Array{1400, 101}, senderSplits)
+	assert.Equal(s.T(), pq.Int64Array{1501}, senderSplits)
 }
 
 func (s *TransactionModelTestSuite) TestGetSenderSplitAmounts_SimpleSplit() {
 	gt := GroupTransaction{
 		Amount:             20001,
 		Memo:               "test",
-		SenderIDs:          pq.Int64Array{1, 2},
+		SenderIDs:          pq.Int64Array{1},
 		RecipientIDs:       pq.Int64Array{5, 6, 7},
-		SenderSplits:       pq.Int64Array{5, 15},
+		SenderSplits:       pq.Int64Array{5},
 		RecipientSplits:    pq.Int64Array{10000, 1, 10000},
 		RecipientSplitType: "normal",
 		SenderSplitType:    "splitPart",
@@ -91,7 +91,7 @@ func (s *TransactionModelTestSuite) TestGetSenderSplitAmounts_SimpleSplit() {
 	assert.Equal(s.T(), appError.Err{}, err)
 
 	senderSplits := gt.GetSenderSplitAmounts()
-	assert.Equal(s.T(), pq.Int64Array{5001, 15000}, senderSplits)
+	assert.Equal(s.T(), pq.Int64Array{20001}, senderSplits)
 
 	recipientSplits := gt.GetRecipientSplitAmounts()
 	assert.Equal(s.T(), pq.Int64Array{10000, 1, 10000}, recipientSplits)
