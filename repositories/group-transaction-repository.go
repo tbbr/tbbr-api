@@ -22,7 +22,7 @@ func NewGroupTransactionRepository() *GroupTransactionRepository {
 //  limit: return x amount of groups
 //  offset: skip the first x groups
 // @returns
-//  groups: a list of groups
+//  groupTransactions: a list of groupTransactions
 func (r *GroupTransactionRepository) List(groupID uint, limit int, offset int) []models.GroupTransaction {
 	var groupTransactions []models.GroupTransaction
 

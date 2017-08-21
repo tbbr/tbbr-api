@@ -231,6 +231,10 @@ func (gt GroupTransaction) Validate() (bool, appError.Err) {
 ///////////// API Interface Related ////////////////
 ////////////////////////////////////////////////////
 
+func (gt GroupTransaction) GetName() string {
+	return "group-transactions"
+}
+
 // GetID returns a stringified version of an ID
 func (gt GroupTransaction) GetID() string {
 	return strconv.FormatUint(uint64(gt.ID), 10)

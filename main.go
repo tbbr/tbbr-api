@@ -122,6 +122,12 @@ func startGin() {
 			// groupTransactions.PATCH("/:id", controllers.GroupTransactionUpdate)
 			// groupTransactions.DELETE("/:id", controllers.TransactionDelete)
 		}
+		groupMembers := authorized.Group("/group-members")
+		{
+			groupMembers.GET("", controllers.GroupMemberIndex)
+			groupMembers.POST("", controllers.GroupMemberCreate)
+			groupMembers.DELETE("/:id", controllers.GroupMemberDelete)
+		}
 		tokens := router.Group("api/tokens")
 		{
 			tokens.POST("/oauth/grant", controllers.TokenOAuthGrant)
