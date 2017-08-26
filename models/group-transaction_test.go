@@ -55,8 +55,8 @@ func (s *TransactionModelTestSuite) TestGetRecipientSplitAmounts_SimpleSplit() {
 		RecipientIDs:       pq.Int64Array{5, 6, 7},
 		SenderSplits:       pq.Int64Array{1501},
 		RecipientSplits:    pq.Int64Array{1, 3, 2},
-		RecipientSplitType: "splitPart",
-		SenderSplitType:    "normal",
+		RecipientSplitType: "Share",
+		SenderSplitType:    "Normal",
 		GroupID:            2,
 		CreatorID:          4,
 	}
@@ -80,8 +80,8 @@ func (s *TransactionModelTestSuite) TestGetSenderSplitAmounts_SimpleSplit() {
 		RecipientIDs:       pq.Int64Array{5, 6, 7},
 		SenderSplits:       pq.Int64Array{5},
 		RecipientSplits:    pq.Int64Array{10000, 1, 10000},
-		RecipientSplitType: "normal",
-		SenderSplitType:    "splitPart",
+		RecipientSplitType: "Normal",
+		SenderSplitType:    "Share",
 		GroupID:            2,
 		CreatorID:          4,
 	}

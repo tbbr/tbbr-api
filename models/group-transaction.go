@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 	"time"
@@ -85,18 +86,18 @@ func gtGenerateSplitAmounts(amount uint, splitParts pq.Int64Array) pq.Int64Array
 }
 
 func (gt *GroupTransaction) GetSenderSplitAmounts() pq.Int64Array {
-	if gt.SenderSplitType == "normal" {
+	if gt.SenderSplitType == "Normal" {
 		return gt.SenderSplits
-	} else if gt.SenderSplitType == "splitPart" {
+	} else if gt.SenderSplitType == "Share" {
 		return gtGenerateSplitAmounts(gt.Amount, gt.SenderSplits)
 	}
 	return nil
 }
 
 func (gt *GroupTransaction) GetRecipientSplitAmounts() pq.Int64Array {
-	if gt.RecipientSplitType == "normal" {
+	if gt.RecipientSplitType == "Normal" {
 		return gt.RecipientSplits
-	} else if gt.RecipientSplitType == "splitPart" {
+	} else if gt.RecipientSplitType == "Share" {
 		return gtGenerateSplitAmounts(gt.Amount, gt.RecipientSplits)
 	}
 	return nil
@@ -123,6 +124,9 @@ func (gt *GroupTransaction) AfterSave(db *gorm.DB) (err error) {
 
 	senderSplitAmounts := gt.GetSenderSplitAmounts()
 	recipientSplitAmounts := gt.GetRecipientSplitAmounts()
+
+	fmt.Println(senderSplitAmounts)
+	fmt.Println(senderMembers)
 
 	for i := range senderMembers {
 		senderMembers[i].AmountSent += uint(senderSplitAmounts[i])
@@ -212,15 +216,15 @@ func (gt GroupTransaction) Validate() (bool, appError.Err) {
 		return false, invalidID
 	}
 
-	if gt.SenderSplitType != "splitPart" && gt.SenderSplitType != "normal" {
+	if gt.SenderSplitType != "Share" && gt.SenderSplitType != "Normal" {
 		invalidType := appError.InvalidParams
-		invalidType.Detail = "The groupTransaction senderSplitType is invalid, must be one of (splitPart, normal)"
+		invalidType.Detail = "The groupTransaction senderSplitType is invalid, must be one of (Share, Normal)"
 		return false, invalidType
 	}
 
-	if gt.RecipientSplitType != "splitPart" && gt.RecipientSplitType != "normal" {
+	if gt.RecipientSplitType != "Share" && gt.RecipientSplitType != "Normal" {
 		invalidType := appError.InvalidParams
-		invalidType.Detail = "The groupTransaction recipientSplitType is invalid, must be one of (splitPart, normal)"
+		invalidType.Detail = "The groupTransaction recipientSplitType is invalid, must be one of (Share, Normal)"
 		return false, invalidType
 	}
 
@@ -311,7 +315,7 @@ func (gt GroupTransaction) GetReferencedStructs() []jsonapi.MarshalIdentifier {
 }
 
 // SetToOneReferenceID sets the reference ID and satisfies the jsonapi.UnmarshalToOneRelations interface
-func (gt *GroupTransaction) SetToOneReferenceID(name, ID string) error {
+func (gt *GroupTransaction) SetToOneReferenceID(name string, ID string) error {
 	temp, err := strconv.ParseUint(ID, 10, 64)
 
 	if err != nil {
@@ -322,7 +326,34 @@ func (gt *GroupTransaction) SetToOneReferenceID(name, ID string) error {
 	case "creator":
 		gt.CreatorID = uint(temp)
 		return nil
+	case "group":
+		gt.GroupID = uint(temp)
+		return nil
 	}
 
 	return errors.New("There is no to-one relationship with the name " + name)
+}
+
+// SetToManyReferenceIDs sets the reference ID and satisfies the jsonapi.UnmarshalToManyRelations interface
+func (gt *GroupTransaction) SetToManyReferenceIDs(name string, IDs []string) error {
+	var tempIDs pq.Int64Array
+
+	for i := range IDs {
+		temp, err := strconv.ParseInt(IDs[i], 10, 64)
+		if err != nil {
+			return err
+		}
+		tempIDs = append(tempIDs, temp)
+	}
+
+	switch name {
+	case "senders":
+		gt.SenderIDs = tempIDs
+		return nil
+	case "recipients":
+		gt.RecipientIDs = tempIDs
+		return nil
+	}
+
+	return errors.New("There is no to-many relationship with the name " + name)
 }
