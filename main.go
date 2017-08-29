@@ -120,7 +120,7 @@ func startGin() {
 			groupTransactions.POST("", controllers.GroupTransactionCreate)
 
 			// groupTransactions.PATCH("/:id", controllers.GroupTransactionUpdate)
-			// groupTransactions.DELETE("/:id", controllers.TransactionDelete)
+			groupTransactions.DELETE("/:id", controllers.GroupTransactionDelete)
 		}
 		groupMembers := authorized.Group("/group-members")
 		{

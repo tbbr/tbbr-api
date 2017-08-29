@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/tbbr/tbbr-api/database"
 	"github.com/tbbr/tbbr-api/models"
 	"github.com/tbbr/tbbr-api/repositories"
 
@@ -161,27 +162,27 @@ func GroupTransactionCreate(c *gin.Context) {
 // 	c.Data(http.StatusOK, "application/vnd.api+json", data)
 // }
 //
-// // TransactionDelete will delete an existing transaction
-// // or throw an error
-// // @parameters
-// //		@requires id
-// // @returns JSON meta property with status
-// func TransactionDelete(c *gin.Context) {
-// 	var t models.Transaction
-// 	if database.DBCon.First(&t, c.Param("id")).RecordNotFound() {
-// 		c.AbortWithError(http.StatusNotFound, appError.RecordNotFound).
-// 			SetMeta(appError.RecordNotFound)
-// 		return
-// 	}
-//
-// 	// Ensure current user is creator of transaction
-// 	if t.CreatorID != c.Keys["CurrentUserID"].(uint) {
-// 		c.AbortWithError(appError.InsufficientPermission.Status, appError.InsufficientPermission).
-// 			SetMeta(appError.InsufficientPermission)
-// 		return
-// 	}
-//
-// 	database.DBCon.Delete(&t)
-//
-// 	c.JSON(http.StatusOK, gin.H{"meta": gin.H{"success": true}})
-// }
+// GroupTransactionDelete will delete an existing groupTransaction
+// or throw an error
+// @parameters
+//		@requires id
+// @returns JSON meta property with status
+func GroupTransactionDelete(c *gin.Context) {
+	var gt models.GroupTransaction
+	if database.DBCon.First(&gt, c.Param("id")).RecordNotFound() {
+		c.AbortWithError(http.StatusNotFound, appError.RecordNotFound).
+			SetMeta(appError.RecordNotFound)
+		return
+	}
+
+	// Ensure current user is creator of transaction
+	if gt.CreatorID != c.Keys["CurrentUserID"].(uint) {
+		c.AbortWithError(appError.InsufficientPermission.Status, appError.InsufficientPermission).
+			SetMeta(appError.InsufficientPermission)
+		return
+	}
+
+	database.DBCon.Delete(&gt)
+
+	c.JSON(http.StatusOK, gin.H{"meta": gin.H{"success": true}})
+}

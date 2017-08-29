@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"strconv"
 	"time"
@@ -18,6 +17,7 @@ import (
 // the transaction can have multiple senders and multiple recipients
 type GroupTransaction struct {
 	ID                 uint          `json:"-"`
+	Type               string        `json:"type"`
 	Amount             uint          `json:"amount"`
 	Memo               string        `json:"memo"`
 	SenderIDs          pq.Int64Array `gorm:"type:integer[]" json:"senderIds"`
@@ -125,9 +125,6 @@ func (gt *GroupTransaction) AfterSave(db *gorm.DB) (err error) {
 	senderSplitAmounts := gt.GetSenderSplitAmounts()
 	recipientSplitAmounts := gt.GetRecipientSplitAmounts()
 
-	fmt.Println(senderSplitAmounts)
-	fmt.Println(senderMembers)
-
 	for i := range senderMembers {
 		senderMembers[i].AmountSent += uint(senderSplitAmounts[i])
 		database.DBCon.Model(&senderMembers[i]).Update("amount_sent", senderMembers[i].AmountSent)
@@ -173,6 +170,12 @@ func ReverseGroupTransaction(gt *GroupTransaction, db *gorm.DB) {
 
 // Validate the transaction and return a boolean and appError
 func (gt GroupTransaction) Validate() (bool, appError.Err) {
+	if gt.Type != "Payment" && gt.Type != "Normal" {
+		invalidType := appError.InvalidParams
+		invalidType.Detail = "The groupTransaction type must be one of (Payment, Normal)"
+		return false, invalidType
+	}
+
 	// Maximum amount of $100,000
 	if gt.Amount > 10000000 || gt.Amount < 0 {
 		invalidAmount := appError.InvalidParams
