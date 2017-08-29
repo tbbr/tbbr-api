@@ -49,6 +49,7 @@ func (s *TransactionModelTestSuite) TestgtGenerateSplitAmounts_MultiPart() {
 
 func (s *TransactionModelTestSuite) TestGetRecipientSplitAmounts_SimpleSplit() {
 	gt := GroupTransaction{
+		Type:               "Normal",
 		Amount:             1501,
 		Memo:               "test",
 		SenderIDs:          pq.Int64Array{1},
@@ -74,6 +75,7 @@ func (s *TransactionModelTestSuite) TestGetRecipientSplitAmounts_SimpleSplit() {
 
 func (s *TransactionModelTestSuite) TestGetSenderSplitAmounts_SimpleSplit() {
 	gt := GroupTransaction{
+		Type:               "Normal",
 		Amount:             20001,
 		Memo:               "test",
 		SenderIDs:          pq.Int64Array{1},

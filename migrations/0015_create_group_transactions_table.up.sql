@@ -1,5 +1,6 @@
 CREATE TABLE group_transactions (
     id integer NOT NULL,
+    type text NOT NULL,
     amount integer NOT NULL,
     memo text,
     sender_ids integer ARRAY NOT NULL,
